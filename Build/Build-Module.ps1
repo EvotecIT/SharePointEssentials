@@ -15,9 +15,10 @@ Build-Module -ModuleName 'SharePointEssentials' {
 
     # Add standard module dependencies (directly, but can be used with loop as well)
     New-ConfigurationModule -Type RequiredModule -Name @(
-        'PnP.PowerShell'
         'PSWriteColor'
     ) -Guid 'Auto' -Version 'Latest'
+
+    New-ConfigurationModule -Type RequiredModule -Name 'Pnp.PowerShell' -Guid 'Auto' -Version '1.12.0'
 
     # Add external module dependencies, using loop for simplicity
     New-ConfigurationModule -Type ExternalModule -Name @(
