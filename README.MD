@@ -38,7 +38,44 @@ For this script to work, you need to have the following permissions on the appli
 
 Of course you could run around with full control over all sites but that is not recommended.
 
+
+#### Permissions assigned
+
+Once you created application with minimal permissions you need to choose which sites should be covered under it.
+
+```powershell
+$ClientID = '438511c4' # Temp SharePoint App
+$Url = 'https://site.sharepoint.com/sites/TheDashboard'
+
+# Lets connect to SharePoint Online
+Connect-PnPOnline -Url $Url -Interactive
+#First create a Read or Write permission entry for the app to the site. Currently unable to Set as FullControl
+$WritePermissions = Grant-PnPAzureADAppSitePermission -Permissions "Write" -Site $Url -AppId $ClientID -DisplayName "Temp SharePoint App"
+# Get the Permission ID for the app using App Id
+$PermissionId = Get-PnPAzureADAppSitePermission -AppIdentity $ClientID
+# Change the newly created Read/Write app site permission entry to FullControl
+Set-PnPAzureADAppSitePermission -Site $Url -PermissionId $(($PermissionId).Id) -Permissions "FullControl"
+```
+
+#### Verify that it worked
+
+Lets verify things worked as expected. You can do it by running the following command:
+
+```powershell
+$ClientID = '438511c4' # Temp SharePoint App
+$TenantID = 'ceb371f6'
+
+#Connect-PnPOnline -Url $Url -ClientId $ClientID -ClientSecret $ClientSecret
+Connect-PnPOnline -Url $Url -ClientId $ClientID -Thumbprint '2EC' -Tenant $TenantID
+
+$FolderSiteRelativeUrl = "/Shared Documents" #Folder's Site Relative Path
+$FolderItems = Get-PnPFolderItem -FolderSiteRelativeUrl $FolderSiteRelativeUrl -ItemType File -Recursive
+$FolderItems | Format-Table
+```
+
 #### Example
+
+If everything works you can run the following command to synchronize files from local folder to SharePoint Online.
 
 ```powershell
 $Url = 'https://site.sharepoint.com/sites/SharePointEssentials'
