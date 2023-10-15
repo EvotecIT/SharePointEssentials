@@ -1,4 +1,4 @@
-@{
+﻿@{
     AliasesToExport      = @()
     Author               = 'Przemyslaw Klys'
     CmdletsToExport      = @()
@@ -17,13 +17,13 @@
         }
     }
     RequiredModules      = @(@{
-            Guid          = '0b0430ce-d799-4f3b-a565-f0dca1f31e17'
-            ModuleName    = 'PnP.PowerShell'
-            ModuleVersion = '2.2.0'
-        }, @{
             Guid          = '0b0ba5c5-ec85-4c2b-a718-874e55a8bc3f'
             ModuleName    = 'PSWriteColor'
             ModuleVersion = '1.0.1'
+        }, @{
+            Guid          = '0b0430ce-d799-4f3b-a565-f0dca1f31e17'
+            ModuleName    = 'Pnp.PowerShell'
+            ModuleVersion = '1.12.0'
         }, 'Microsoft.PowerShell.Management', 'Microsoft.PowerShell.Utility')
     RootModule           = 'SharePointEssentials.psm1'
 }
