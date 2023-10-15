@@ -21,6 +21,10 @@
             ModuleName    = 'PSWriteColor'
             ModuleVersion = '1.0.1'
         }, @{
+            Guid          = 'ee272aa8-baaa-4edf-9f45-b6d6f7d844fe'
+            ModuleName    = 'PSSharedGoods'
+            ModuleVersion = '0.0.266'
+        }, @{
             Guid          = '0b0430ce-d799-4f3b-a565-f0dca1f31e17'
             ModuleName    = 'Pnp.PowerShell'
             ModuleVersion = '1.12.0'
