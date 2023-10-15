@@ -16,6 +16,7 @@ Build-Module -ModuleName 'SharePointEssentials' {
     # Add standard module dependencies (directly, but can be used with loop as well)
     New-ConfigurationModule -Type RequiredModule -Name @(
         'PSWriteColor'
+        'PSSharedGoods'
     ) -Guid 'Auto' -Version 'Latest'
 
     New-ConfigurationModule -Type RequiredModule -Name 'Pnp.PowerShell' -Guid 'Auto' -Version '1.12.0'
@@ -25,6 +26,8 @@ Build-Module -ModuleName 'SharePointEssentials' {
         'Microsoft.PowerShell.Management'
         'Microsoft.PowerShell.Utility'
     )
+
+    New-ConfigurationModule -Type ApprovedModule -Name 'PSSharedGoods', 'PSWriteColor', 'Connectimo', 'PSUnifi', 'PSWebToolbox', 'PSMyPassword'
 
     $ConfigurationFormat = [ordered] @{
         RemoveComments                              = $false
@@ -77,5 +80,5 @@ Build-Module -ModuleName 'SharePointEssentials' {
 
     # options for publishing to github/psgallery
     #New-ConfigurationPublish -Type PowerShellGallery -FilePath 'C:\Support\Important\PowerShellGalleryAPI.txt' -Enabled:$true
-    #New-ConfigurationPublish -Type GitHub -FilePath 'C:\Support\Important\GitHubAPI.txt' -UserName 'EvotecIT' -Enabled:$true}
+    #New-ConfigurationPublish -Type GitHub -FilePath 'C:\Support\Important\GitHubAPI.txt' -UserName 'EvotecIT' -Enabled:$true
 }
