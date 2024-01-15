@@ -1,7 +1,7 @@
 ﻿function Set-LoggingCapabilities {
     [CmdletBinding()]
     param(
-        [parameter(Mandatory)][string] $LogPath,
+        [parameter()][string] $LogPath,
         [parameter(Mandatory)][string] $ScriptPath,
         [parameter(Mandatory)][int] $LogMaximum,
         [switch] $ShowTime,
