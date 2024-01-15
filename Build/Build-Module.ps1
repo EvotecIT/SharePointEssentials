@@ -1,7 +1,7 @@
 Build-Module -ModuleName 'SharePointEssentials' {
     # Usual defaults as per standard module
     $Manifest = [ordered] @{
-        ModuleVersion        = '1.0.0'
+        ModuleVersion        = '1.0.X'
         CompatiblePSEditions = @('Desktop', 'Core')
         GUID                 = 'e9e31850-6388-4aa5-8e2b-897f6ac1866a'
         Author               = 'Przemyslaw Klys'
