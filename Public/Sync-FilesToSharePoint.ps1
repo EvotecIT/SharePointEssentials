@@ -37,6 +37,9 @@
     .PARAMETER Include
     Include filter for files. Default "*.*"
 
+    .PARAMETER ExcludeFromRemoval
+    List of files/folders to exclude from removal. Default $null
+
     .EXAMPLE
     $Url = 'https://yoursharepoint.sharepoint.com/sites/TheDashboard'
     $ClientID = '438511c4' # Temp SharePoint App
@@ -67,7 +70,8 @@
         [int] $LogMaximum,
         [switch] $LogShowTime,
         [string] $LogTimeFormat,
-        [string] $Include
+        [string] $Include,
+        [string[]] $ExcludeFromRemoval
     )
 
     Set-LoggingCapabilities -LogPath $LogPath -LogMaximum $LogMaximum -ShowTime:$LogShowTime -TimeFormat $LogTimeFormat -ScriptPath $MyInvocation.ScriptName
@@ -143,12 +147,13 @@
 
     # Remove files from SharePoint that are no longer in the source folder
     $removeFileShareDeltaInSPOSplat = @{
-        Source            = $Source
-        SiteURL           = $SiteURL
-        SourceFolderPath  = $SourceFolderPath
-        TargetLibraryName = $TargetLibraryName
-        TargetFolder      = $TargetFolder
-        WhatIf            = $WhatIfPreference
+        Source             = $Source
+        SiteURL            = $SiteURL
+        SourceFolderPath   = $SourceFolderPath
+        TargetLibraryName  = $TargetLibraryName
+        TargetFolder       = $TargetFolder
+        WhatIf             = $WhatIfPreference
+        ExcludeFromRemoval = $ExcludeFromRemoval
     }
 
     Remove-FilesFromSharePoint @removeFileShareDeltaInSPOSplat

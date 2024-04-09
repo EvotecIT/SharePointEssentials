@@ -5,7 +5,8 @@
         [Parameter(Mandatory)] [string] $SiteURL,
         [Parameter(Mandatory)] [string] $SourceFolderPath,
         [Parameter(Mandatory)] [string] $TargetLibraryName,
-        $TargetFolder
+        $TargetFolder,
+        [string[]] $ExcludeFromRemoval
     )
 
     # Get all files on SharePoint Online
@@ -38,10 +39,14 @@
             If ($TargetFile.PSIsContainer) {
                 $Folder = Get-PnPFolder -Url $TargetFile.TargetItemURL -ErrorAction SilentlyContinue
                 If ($Null -ne $Folder -and $Folder.Items.Count -eq 0) {
-                    If ($PSCmdlet.ShouldProcess($TargetFile.TargetItemURL, "Removing folder from SharePoint")) {
-                        Write-Color -Text "[-] ", "Removing Item ", "($($Counter) of $($TargetDelta.Count)) ", "'$($TargetFile.TargetItemURL)'" -Color Red, White, Yellow, Red
-                        $null = $Folder.Recycle()
-                        Invoke-PnPQuery
+                    if ($ExcludeFromRemoval -like "*$($TargetFile.TargetItemURL)*") {
+                        Write-Color -Text "[!] ", "Folder ", "'$($TargetFile.TargetItemURL)'", " is excluded from removal." -Color Yellow, White, Yellow, Red
+                    } else {
+                        If ($PSCmdlet.ShouldProcess($TargetFile.TargetItemURL, "Removing folder from SharePoint")) {
+                            Write-Color -Text "[-] ", "Removing Item ", "($($Counter) of $($TargetDelta.Count)) ", "'$($TargetFile.TargetItemURL)'" -Color Red, White, Yellow, Red
+                            $null = $Folder.Recycle()
+                            Invoke-PnPQuery
+                        }
                     }
                 } else {
                     Write-Color -Text "[!] ", "Folder ", "'$($TargetFile.TargetItemURL)'", " is not empty. Skipping." -Color Yellow, White, Yellow, Red
@@ -49,9 +54,13 @@
             } else {
                 $File = Get-PnPFile -Url $TargetFile.TargetItemURL -ErrorAction SilentlyContinue
                 If ($Null -ne $File) {
-                    If ($PSCmdlet.ShouldProcess($TargetFile.TargetItemURL, "Removing file from SharePoint")) {
-                        Write-Color -Text "[-] ", "Removing Item ", "($($Counter) of $($TargetDelta.Count)) ", "'$($TargetFile.TargetItemURL)'" -Color Red, White, Yellow, Red
-                        Remove-PnPFile -SiteRelativeUrl $TargetFile.TargetItemURL -Force
+                    if ($ExcludeFromRemoval -like "*$($TargetFile.TargetItemURL)*") {
+                        Write-Color -Text "[!] ", "File ", "'$($TargetFile.TargetItemURL)'", " is excluded from removal." -Color Yellow, White, Yellow, Red
+                    } else {
+                        If ($PSCmdlet.ShouldProcess($TargetFile.TargetItemURL, "Removing file from SharePoint")) {
+                            Write-Color -Text "[-] ", "Removing Item ", "($($Counter) of $($TargetDelta.Count)) ", "'$($TargetFile.TargetItemURL)'" -Color Red, White, Yellow, Red
+                            Remove-PnPFile -SiteRelativeUrl $TargetFile.TargetItemURL -Force
+                        }
                     }
                 }
             }
