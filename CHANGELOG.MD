@@ -1,4 +1,7 @@
-﻿### 1.0.3
+﻿### 1.0.4
+- Fixes `ExcludeFromRemoval` which allows skipping files existing on Sharepoint already
+
+### 1.0.3
 - Fixes `ExcludeFromRemoval` which allows skipping files existing on Sharepoint already
 
 ### 1.0.2

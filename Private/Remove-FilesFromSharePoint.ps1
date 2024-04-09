@@ -35,7 +35,7 @@
         Write-Color -Text "[information] ", "Found ", "$($TargetDelta.Count)", " differences in the Target. Removal is required." -Color Yellow, White, Yellow, White, Yellow, Red
 
         $Counter = 1
-        foreach ($TargetFile in $TargetDelta | Sort-Object TargetItemURL -Descending) {
+        :topLoop foreach ($TargetFile in $TargetDelta | Sort-Object TargetItemURL -Descending) {
             If ($TargetFile.PSIsContainer) {
                 $Folder = Get-PnPFolder -Url $TargetFile.TargetItemURL -ErrorAction SilentlyContinue
                 If ($Null -ne $Folder -and $Folder.Items.Count -eq 0) {
@@ -43,7 +43,7 @@
                         foreach ($Exclude in $ExcludeFromRemoval) {
                             If ($TargetFile.TargetItemURL -like $Exclude) {
                                 Write-Color -Text "[!] ", "Folder ", "'$($TargetFile.TargetItemURL)'", " is excluded from removal." -Color Yellow, White, Yellow, Red
-                                Continue
+                                Continue topLoop
                             }
                         }
                     }
@@ -62,7 +62,7 @@
                         foreach ($Exclude in $ExcludeFromRemoval) {
                             If ($TargetFile.TargetItemURL -like $Exclude) {
                                 Write-Color -Text "[!] ", "File ", "'$($TargetFile.TargetItemURL)'", " is excluded from removal." -Color Yellow, White, Yellow, Red
-                                Continue
+                                Continue topLoop
                             }
                         }
                     }
