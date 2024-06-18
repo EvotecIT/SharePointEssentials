@@ -1,4 +1,7 @@
-﻿### 1.0.4
+﻿### 1.0.5
+- Catching errors and logging them properly
+
+### 1.0.4
 - Fixes `ExcludeFromRemoval` which allows skipping files existing on Sharepoint already
 
 ### 1.0.3
