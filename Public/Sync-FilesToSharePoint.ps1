@@ -112,10 +112,16 @@
     if ($Include) {
         $getChildItemSplat["Include"] = $Include
     }
-    $SourceItems = @(
-        Get-ChildItem -Directory -Path $SourceFolderPath -Recurse
-        Get-ChildItem @getChildItemSplat
-    )
+    try {
+        $SourceItems = @(
+            Get-ChildItem -Directory -Path $SourceFolderPath -Recurse -ErrorAction Stop
+            Get-ChildItem @getChildItemSplat -ErrorAction Stop
+        )
+    } catch {
+        Write-Color -Text "[e] ", "Unable to get files from the source folder. Make sure the path is correct and you have permissions to access it." -Color Yellow, Red
+        Write-Color -Text "[e] ", "Error: ", $_.Exception.Message -Color Yellow, Red
+        return
+    }
     [Array] $Source = foreach ($File in $SourceItems | Sort-Object -Unique -Property FullName) {
         # Dates are not the same as in SharePoint, so we need to convert them to UTC
         # And make sure we don't add miliseconds, as it will cause issues with comparisonS

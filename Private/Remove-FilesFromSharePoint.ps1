@@ -49,8 +49,12 @@
                     }
                     If ($PSCmdlet.ShouldProcess($TargetFile.TargetItemURL, "Removing folder from SharePoint")) {
                         Write-Color -Text "[-] ", "Removing Item ", "($($Counter) of $($TargetDelta.Count)) ", "'$($TargetFile.TargetItemURL)'" -Color Red, White, Yellow, Red
-                        $null = $Folder.Recycle()
-                        Invoke-PnPQuery
+                        try {
+                            $null = $Folder.Recycle()
+                            Invoke-PnPQuery
+                        } catch {
+                            Write-Color -Text "[!] ", "Failed to remove folder ", "'$($TargetFile.TargetItemURL)'", " - ", $_.Exception.Message -Color Yellow, White, Yellow, Red
+                        }
                     }
                 } else {
                     Write-Color -Text "[!] ", "Folder ", "'$($TargetFile.TargetItemURL)'", " is not empty. Skipping." -Color Yellow, White, Yellow, Red
@@ -68,7 +72,11 @@
                     }
                     If ($PSCmdlet.ShouldProcess($TargetFile.TargetItemURL, "Removing file from SharePoint")) {
                         Write-Color -Text "[-] ", "Removing Item ", "($($Counter) of $($TargetDelta.Count)) ", "'$($TargetFile.TargetItemURL)'" -Color Red, White, Yellow, Red
-                        Remove-PnPFile -SiteRelativeUrl $TargetFile.TargetItemURL -Force
+                        try {
+                            Remove-PnPFile -SiteRelativeUrl $TargetFile.TargetItemURL -Force -ErrorAction Stop
+                        } catch {
+                            Write-Color -Text "[!] ", "Failed to remove file ", "'$($TargetFile.TargetItemURL)'", " - ", $_.Exception.Message -Color Yellow, White, Yellow, Red
+                        }
                     }
                 }
             }

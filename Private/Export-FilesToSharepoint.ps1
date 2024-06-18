@@ -75,7 +75,11 @@
         } else {
             If ($PSCmdlet.ShouldProcess($TargetFolderURL, "Adding new file '$($SourceFile.FullName)' to SharePoint folder")) {
                 Write-Color -Text "[+] ", "Adding new file ", "($($Counter) of $($ActionsToDo["Add"].Count)) ", "'$($SourceFile.FullName)'", " to Folder ", "'$TargetFolderURL'" -Color Yellow, White, Yellow, White, Yellow, Cyan
-                $null = Add-PnPFile -Path $SourceFile.FullName -Folder $TargetFolderURL -Values @{"Modified" = $SourceFile.LastUpdated.ToLocalTime() }
+                try {
+                    $null = Add-PnPFile -Path $SourceFile.FullName -Folder $TargetFolderURL -Values @{"Modified" = $SourceFile.LastUpdated.ToLocalTime() } -ErrorAction Stop
+                } catch {
+                    Write-Color -Text "[!] ", "Error adding file ", "'$($SourceFile.FullName)'", " to Folder ", "'$TargetFolderURL'" -Color Yellow, White, Yellow, White
+                }
             }
         }
         $Counter++
@@ -95,7 +99,11 @@
         } else {
             If ($PSCmdlet.ShouldProcess($TargetFolderURL, "Updating file '$($SourceFile.FullName)' to SharePoint folder")) {
                 Write-Color -Text "[+] ", "Updating file ", "($($Counter) of $($ActionsToDo["Update"].Count)) ", "'$($SourceFile.FullName)'", " to Folder ", "'$TargetFolderURL'" -Color Yellow, White, Yellow, White, Yellow, Cyan
-                $null = Add-PnPFile -Path $SourceFile.FullName -Folder $TargetFolderURL -Values @{"Modified" = $SourceFile.LastUpdated.ToLocalTime() }
+                try {
+                    $null = Add-PnPFile -Path $SourceFile.FullName -Folder $TargetFolderURL -Values @{"Modified" = $SourceFile.LastUpdated.ToLocalTime() } -ErrorAction Stop
+                } catch {
+                    Write-Color -Text "[!] ", "Error updating file ", "'$($SourceFile.FullName)'", " to Folder ", "'$TargetFolderURL'" -Color Yellow, White, Yellow, White
+                }
             }
         }
         $Counter++
