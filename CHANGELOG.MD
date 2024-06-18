@@ -1,4 +1,7 @@
-﻿### 1.0.5
+﻿### 1.0.6
+- Improve error reporting
+
+### 1.0.5
 - Catching errors and logging them properly
 
 ### 1.0.4
