@@ -8,7 +8,7 @@
     Description          = 'Simple project SharePointEssentials'
     FunctionsToExport    = 'Sync-FilesToSharePoint'
     GUID                 = 'e9e31850-6388-4aa5-8e2b-897f6ac1866a'
-    ModuleVersion        = '1.0.4'
+    ModuleVersion        = '1.0.5'
     PowerShellVersion    = '5.1'
     PrivateData          = @{
         PSData = @{
@@ -23,7 +23,7 @@
         }, @{
             Guid          = 'ee272aa8-baaa-4edf-9f45-b6d6f7d844fe'
             ModuleName    = 'PSSharedGoods'
-            ModuleVersion = '0.0.282'
+            ModuleVersion = '0.0.291'
         }, @{
             Guid          = '0b0430ce-d799-4f3b-a565-f0dca1f31e17'
             ModuleName    = 'Pnp.PowerShell'
