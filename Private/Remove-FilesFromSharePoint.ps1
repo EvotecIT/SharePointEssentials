@@ -53,7 +53,7 @@
                             $null = $Folder.Recycle()
                             Invoke-PnPQuery
                         } catch {
-                            Write-Color -Text "[!] ", "Failed to remove folder ", "'$($TargetFile.TargetItemURL)'", " - ", $_.Exception.Message -Color Yellow, White, Yellow, Red
+                            Write-Color -Text "[!] ", "Failed to remove folder ", "'$($TargetFile.TargetItemURL)'", ". Error: ", $_.Exception.Message -Color Yellow, White, Yellow, Red
                         }
                     }
                 } else {
@@ -75,7 +75,7 @@
                         try {
                             Remove-PnPFile -SiteRelativeUrl $TargetFile.TargetItemURL -Force -ErrorAction Stop
                         } catch {
-                            Write-Color -Text "[!] ", "Failed to remove file ", "'$($TargetFile.TargetItemURL)'", " - ", $_.Exception.Message -Color Yellow, White, Yellow, Red
+                            Write-Color -Text "[!] ", "Failed to remove file ", "'$($TargetFile.TargetItemURL)'", ". Error: ", $_.Exception.Message -Color Yellow, White, Yellow, Red
                         }
                     }
                 }

@@ -78,7 +78,7 @@
                 try {
                     $null = Add-PnPFile -Path $SourceFile.FullName -Folder $TargetFolderURL -Values @{"Modified" = $SourceFile.LastUpdated.ToLocalTime() } -ErrorAction Stop
                 } catch {
-                    Write-Color -Text "[!] ", "Error adding file ", "'$($SourceFile.FullName)'", " to Folder ", "'$TargetFolderURL'" -Color Yellow, White, Yellow, White
+                    Write-Color -Text "[!] ", "Error adding file ", "'$($SourceFile.FullName)'", " to Folder ", "'$TargetFolderURL'", ". Error: ", $_.Exception.Message -Color Yellow, White, Yellow, White, Yellow, Red
                 }
             }
         }
@@ -102,7 +102,7 @@
                 try {
                     $null = Add-PnPFile -Path $SourceFile.FullName -Folder $TargetFolderURL -Values @{"Modified" = $SourceFile.LastUpdated.ToLocalTime() } -ErrorAction Stop
                 } catch {
-                    Write-Color -Text "[!] ", "Error updating file ", "'$($SourceFile.FullName)'", " to Folder ", "'$TargetFolderURL'" -Color Yellow, White, Yellow, White
+                    Write-Color -Text "[!] ", "Error updating file ", "'$($SourceFile.FullName)'", " to Folder ", "'$TargetFolderURL'", ". Error: ", $_.Exception.Message -Color Yellow, White, Yellow, White, Yellow, Red
                 }
             }
         }
