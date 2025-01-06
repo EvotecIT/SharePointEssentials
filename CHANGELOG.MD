@@ -1,5 +1,6 @@
 ﻿### 1.0.7
 - Add ability to synchronize specific files only
+- Add ability to skip removal of files
 
 ### 1.0.6
 - Improve error reporting
