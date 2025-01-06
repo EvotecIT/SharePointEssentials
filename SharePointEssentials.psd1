@@ -4,11 +4,11 @@
     CmdletsToExport      = @()
     CompanyName          = 'Evotec'
     CompatiblePSEditions = @('Desktop', 'Core')
-    Copyright            = '(c) 2011 - 2024 Przemyslaw Klys @ Evotec. All rights reserved.'
+    Copyright            = '(c) 2011 - 2025 Przemyslaw Klys @ Evotec. All rights reserved.'
     Description          = 'Simple project SharePointEssentials'
     FunctionsToExport    = 'Sync-FilesToSharePoint'
     GUID                 = 'e9e31850-6388-4aa5-8e2b-897f6ac1866a'
-    ModuleVersion        = '1.0.6'
+    ModuleVersion        = '1.0.7'
     PowerShellVersion    = '5.1'
     PrivateData          = @{
         PSData = @{
@@ -23,7 +23,7 @@
         }, @{
             Guid          = 'ee272aa8-baaa-4edf-9f45-b6d6f7d844fe'
             ModuleName    = 'PSSharedGoods'
-            ModuleVersion = '0.0.291'
+            ModuleVersion = '0.0.303'
         }, @{
             Guid          = '0b0430ce-d799-4f3b-a565-f0dca1f31e17'
             ModuleName    = 'Pnp.PowerShell'
