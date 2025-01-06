@@ -5,7 +5,7 @@
     CompanyName          = 'Evotec'
     CompatiblePSEditions = @('Desktop', 'Core')
     Copyright            = '(c) 2011 - 2025 Przemyslaw Klys @ Evotec. All rights reserved.'
-    Description          = 'Simple project SharePointEssentials'
+    Description          = 'Project to help with SharePoint synchronnization of files'
     FunctionsToExport    = 'Sync-FilesToSharePoint'
     GUID                 = 'e9e31850-6388-4aa5-8e2b-897f6ac1866a'
     ModuleVersion        = '1.0.7'
