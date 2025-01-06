@@ -44,6 +44,9 @@
     .PARAMETER ExcludeFromRemoval
     List of files/folders to exclude from removal. Default $null
 
+    .PARAMETER SkipRemoval
+    Skip removal of files/folders from SharePoint Online. Default $false
+
     .EXAMPLE
     $Url = 'https://yoursharepoint.sharepoint.com/sites/TheDashboard'
     $ClientID = '438511c4' # Temp SharePoint App
@@ -76,7 +79,8 @@
         [switch] $LogShowTime,
         [string] $LogTimeFormat,
         [string] $Include,
-        [string[]] $ExcludeFromRemoval
+        [string[]] $ExcludeFromRemoval,
+        [switch] $SkipRemoval
     )
 
     Set-LoggingCapabilities -LogPath $LogPath -LogMaximum $LogMaximum -ShowTime:$LogShowTime -TimeFormat $LogTimeFormat -ScriptPath $MyInvocation.ScriptName
@@ -182,20 +186,23 @@
     }
     Export-FilesToSharePoint @exportFilesToSharePointSplat
 
-    Write-Color -Text "[i] ", "Starting removal of files/folders from SharePoint ", $SiteUrl -Color Yellow, White, Green
+    if (-not $SkipRemoval) {
+        Write-Color -Text "[i] ", "Starting removal of files/folders from SharePoint ", $SiteUrl -Color Yellow, White, Green
 
-    # Remove files from SharePoint that are no longer in the source folder
-    $removeFileShareDeltaInSPOSplat = @{
-        Source             = $Source
-        SiteURL            = $SiteURL
-        SourceFolderPath   = $SourceDirectoryPath
-        TargetLibraryName  = $TargetLibraryName
-        TargetFolder       = $TargetFolder
-        WhatIf             = $WhatIfPreference
-        ExcludeFromRemoval = $ExcludeFromRemoval
+        # Remove files from SharePoint that are no longer in the source folder
+        $removeFileShareDeltaInSPOSplat = @{
+            Source             = $Source
+            SiteURL            = $SiteURL
+            SourceFolderPath   = $SourceDirectoryPath
+            TargetLibraryName  = $TargetLibraryName
+            TargetFolder       = $TargetFolder
+            WhatIf             = $WhatIfPreference
+            ExcludeFromRemoval = $ExcludeFromRemoval
+        }
+
+        Remove-FilesFromSharePoint @removeFileShareDeltaInSPOSplat
+    } else {
+        Write-Color -Text "[i] ", "Skipping removal of files/folders from SharePoint as requested", $SiteUrl -Color Yellow, White, Green
     }
-
-    Remove-FilesFromSharePoint @removeFileShareDeltaInSPOSplat
-
     Write-Color -Text "[i] ", "Finished synchronization of files from ", $SourceFolderPath, " to ", $SiteUrl -Color Yellow, White, Yellow, White, Green
 }
