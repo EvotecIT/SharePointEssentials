@@ -7,7 +7,7 @@ Build-Module -ModuleName 'SharePointEssentials' {
         Author               = 'Przemyslaw Klys'
         CompanyName          = 'Evotec'
         Copyright            = "(c) 2011 - $((Get-Date).Year) Przemyslaw Klys @ Evotec. All rights reserved."
-        Description          = 'Simple project SharePointEssentials'
+        Description          = 'Project to help with SharePoint synchronnization of files'
         PowerShellVersion    = '5.1'
         Tags                 = @('SharePoint', 'SPO', 'Windows')
     }
