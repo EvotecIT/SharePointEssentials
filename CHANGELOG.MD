@@ -1,4 +1,7 @@
-﻿### 1.0.6
+﻿### 1.0.7
+- Add ability to synchronize specific files only
+
+### 1.0.6
 - Improve error reporting
 
 ### 1.0.5
