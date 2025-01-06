@@ -109,10 +109,21 @@
     }
 
     if ($SourceFileList) {
+        $SourceDirectoryPath = $null
         # Lets get all files from the source folder
         [Array] $SourceItems = foreach ($Item in $SourceFileList) {
+            # We need to find the shortest path to the files
+            $TempSourceDirectoryPath = [io.path]::GetDirectoryName($Item)
+            if ($null -eq $SourceDirectoryPath) {
+                $SourceDirectoryPath = $TempSourceDirectoryPath
+            } elseif ($SourceDirectoryPath -ne $TempSourceDirectoryPath) {
+                if ($TempSourceDirectoryPath.Length -lt $SourceDirectoryPath.Length) {
+                    $SourceDirectoryPath = $TempSourceDirectoryPath
+                }
+            }
             try {
                 Get-Item -Path $Item -ErrorAction Stop
+                Get-Item -Path $TempSourceDirectoryPath -ErrorAction Stop
             } catch {
                 Write-Color -Text "[e] ", "Unable to get file '$Item' from the source file list. Make sure the path is correct and you have permissions to access it." -Color Yellow, Red
                 Write-Color -Text "[e] ", "Error: ", $_.Exception.Message -Color Yellow, Red
@@ -124,6 +135,7 @@
             return
         }
     } else {
+        $SourceDirectoryPath = $SourceFolderPath
         # Lets get all files from the source folder
         $getChildItemSplat = @{
             Path    = $SourceFolderPath
@@ -150,7 +162,7 @@
         [PSCustomObject] @{
             FullName      = $File.FullName
             PSIsContainer = $File.PSIsContainer
-            TargetItemURL = $File.FullName.Replace($SourceFolderPath, $TargetFolderSiteRelativeURL).Replace("\", "/")
+            TargetItemURL = $File.FullName.Replace($SourceDirectoryPath, $TargetFolderSiteRelativeURL).Replace("\", "/")
             LastUpdated   = [datetime]::new($Date.Year, $Date.Month, $Date.Day, $Date.Hour, $Date.Minute, $Date.Second)
         }
     }
@@ -163,7 +175,7 @@
     # Upload files to SharePoint
     $exportFilesToSharePointSplat = @{
         Source            = $Source
-        SourceFolderPath  = $SourceFolderPath
+        SourceFolderPath  = $SourceDirectoryPath
         TargetLibraryName = $TargetLibraryName
         TargetFolder      = $TargetFolder
         WhatIf            = $WhatIfPreference
@@ -176,7 +188,7 @@
     $removeFileShareDeltaInSPOSplat = @{
         Source             = $Source
         SiteURL            = $SiteURL
-        SourceFolderPath   = $SourceFolderPath
+        SourceFolderPath   = $SourceDirectoryPath
         TargetLibraryName  = $TargetLibraryName
         TargetFolder       = $TargetFolder
         WhatIf             = $WhatIfPreference
