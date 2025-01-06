@@ -17,6 +17,10 @@
     .PARAMETER SourceFolderPath
     Local folder path to synchronize
 
+    .PARAMETER SourceFileList
+    List of files to synchronize. If this is used, then SourceFolderPath is ignored
+    This is useful when you want to synchronize specific files only
+
     .PARAMETER TargetLibraryName
     Name of the library to synchronize to without site url
 
@@ -61,10 +65,11 @@
     .NOTES
     General notes
     #>
-    [CmdletBinding(SupportsShouldProcess)]
+    [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'SourceFolder')]
     param (
         [Parameter(Mandatory)][string] $SiteURL,
-        [Parameter(Mandatory)][string] $SourceFolderPath,
+        [Parameter(Mandatory, ParameterSetName = 'SourceFolder')][string] $SourceFolderPath,
+        [Parameter(Mandatory, ParameterSetName = 'SourceFileList')][Array] $SourceFileList,
         [Parameter(Mandatory)][string] $TargetLibraryName,
         [string] $LogPath,
         [int] $LogMaximum,
@@ -103,28 +108,44 @@
         $TargetFolderSiteRelativeURL = $TargetFolder.ServerRelativeURL.Replace($Web.ServerRelativeUrl, [string]::Empty)
     }
 
-    # Lets get all files from the source folder
-    $getChildItemSplat = @{
-        Path    = $SourceFolderPath
-        Recurse = $true
-
-    }
-    if ($Include) {
-        $getChildItemSplat["Include"] = $Include
-    }
-    try {
-        $SourceItems = @(
-            Get-ChildItem -Directory -Path $SourceFolderPath -Recurse -ErrorAction Stop
-            Get-ChildItem @getChildItemSplat -ErrorAction Stop
-        )
-    } catch {
-        Write-Color -Text "[e] ", "Unable to get files from the source folder. Make sure the path is correct and you have permissions to access it." -Color Yellow, Red
-        Write-Color -Text "[e] ", "Error: ", $_.Exception.Message -Color Yellow, Red
-        return
+    if ($SourceFileList) {
+        # Lets get all files from the source folder
+        [Array] $SourceItems = foreach ($Item in $SourceFileList) {
+            try {
+                Get-Item -Path $Item -ErrorAction Stop
+            } catch {
+                Write-Color -Text "[e] ", "Unable to get file '$Item' from the source file list. Make sure the path is correct and you have permissions to access it." -Color Yellow, Red
+                Write-Color -Text "[e] ", "Error: ", $_.Exception.Message -Color Yellow, Red
+                return
+            }
+        }
+        if ($SourceItems.Count -eq 0) {
+            Write-Color -Text "[e] ", "No files found in the source file list. Please make sure the list is not empty." -Color Yellow, Red
+            return
+        }
+    } else {
+        # Lets get all files from the source folder
+        $getChildItemSplat = @{
+            Path    = $SourceFolderPath
+            Recurse = $trues
+        }
+        if ($Include) {
+            $getChildItemSplat["Include"] = $Include
+        }
+        try {
+            $SourceItems = @(
+                Get-ChildItem -Directory -Path $SourceFolderPath -Recurse -ErrorAction Stop
+                Get-ChildItem @getChildItemSplat -ErrorAction Stop
+            )
+        } catch {
+            Write-Color -Text "[e] ", "Unable to get files from the source folder. Make sure the path is correct and you have permissions to access it." -Color Yellow, Red
+            Write-Color -Text "[e] ", "Error: ", $_.Exception.Message -Color Yellow, Red
+            return
+        }
     }
     [Array] $Source = foreach ($File in $SourceItems | Sort-Object -Unique -Property FullName) {
         # Dates are not the same as in SharePoint, so we need to convert them to UTC
-        # And make sure we don't add miliseconds, as it will cause issues with comparisonS
+        # And make sure we don't add miliseconds, as it will cause issues with comparison
         $Date = $File.LastWriteTimeUtc
         [PSCustomObject] @{
             FullName      = $File.FullName
