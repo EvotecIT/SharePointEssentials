@@ -29,6 +29,12 @@ Install-Module SharePointEssentials -Force -Verbose
 
 ### Usage Synchronization
 
+#### Creating SharePoint Sites
+
+```powershell
+New-SPOSite -Url "https://site.sharepoint.com/sites/TheDashboard" -Owner admin@microsoft.com -Title TRest -Template "BLANKINTERNETCONTAINER#0" -StorageQuota 50000
+```
+
 #### Permissions required
 
 For this script to work, you need to have the following permissions on the application (as a minimum):
@@ -37,7 +43,6 @@ For this script to work, you need to have the following permissions on the appli
 - Microsoft Graph / Sites.Selected
 
 Of course you could run around with full control over all sites but that is not recommended.
-
 
 #### Permissions assigned
 
