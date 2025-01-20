@@ -14,11 +14,16 @@
 
     $Target = foreach ($File in $TargetFiles) {
         $Date = $File.FieldValues.Modified.ToUniversalTime()
-        [PSCustomObject] @{
-            FullName      = $File.FieldValues.FileRef.Replace($TargetFolder.ServerRelativeURL, $SourceFolderPath).Replace("/", "\")
-            PSIsContainer = $File.FileSystemObjectType -eq "Folder"
-            TargetItemURL = $File.FieldValues.FileRef.Replace($Web.ServerRelativeUrl, [string]::Empty)
-            LastUpdated   = [datetime]::new($Date.Year, $Date.Month, $Date.Day, $Date.Hour, $Date.Minute, $Date.Second)
+        if ($File.FieldValues.FileRef -like "$($TargetFolder.ServerRelativeUrl)/*") {
+            [PSCustomObject] @{
+                FullName      = $File.FieldValues.FileRef.Replace($TargetFolder.ServerRelativeURL, $SourceFolderPath).Replace("/", "\")
+                PSIsContainer = $File.FileSystemObjectType -eq "Folder"
+                TargetItemURL = $File.FieldValues.FileRef.Replace($Web.ServerRelativeUrl, [string]::Empty)
+                LastUpdated   = [datetime]::new($Date.Year, $Date.Month, $Date.Day, $Date.Hour, $Date.Minute, $Date.Second)
+            }
+            Write-Color -Text "[i] ", "File ", "'$($File.FieldValues.FileRef)'", " is in the target folder." -Color Yellow, White, Yellow
+        } else {
+            #Write-Color -Text "[!] ", "File ", "'$($File.FieldValues.FileRef)'", " is not in the target folder. Skipping." -Color Yellow, White, Yellow, Red
         }
     }
 
