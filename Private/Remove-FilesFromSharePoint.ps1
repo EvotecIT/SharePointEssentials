@@ -21,7 +21,7 @@
                 TargetItemURL = $File.FieldValues.FileRef.Replace($Web.ServerRelativeUrl, [string]::Empty)
                 LastUpdated   = [datetime]::new($Date.Year, $Date.Month, $Date.Day, $Date.Hour, $Date.Minute, $Date.Second)
             }
-            Write-Color -Text "[i] ", "File ", "'$($File.FieldValues.FileRef)'", " is in the target folder." -Color Yellow, White, Yellow
+            #Write-Color -Text "[i] ", "File ", "'$($File.FieldValues.FileRef)'", " is in the target folder." -Color Yellow, White, Yellow
         } else {
             #Write-Color -Text "[!] ", "File ", "'$($File.FieldValues.FileRef)'", " is not in the target folder. Skipping." -Color Yellow, White, Yellow, Red
         }
