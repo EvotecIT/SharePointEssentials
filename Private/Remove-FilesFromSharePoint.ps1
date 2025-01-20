@@ -8,7 +8,6 @@
         $TargetFolder,
         [string[]] $ExcludeFromRemoval
     )
-
     # Get all files on SharePoint Online
     $TargetFiles = Get-PnPListItem -List $TargetLibraryName -PageSize 2000
 
