@@ -103,11 +103,27 @@
         Write-Color -Text "[e] ", "Error: ", $_.Exception.Message -Color Yellow, Red
         return
     }
-    $TargetFolder = $Library.RootFolder
 
-    $RelativeUrlRoot = $Web.ServerRelativeUrl
-    $RelativeUrlLibrary = $TargetFolder.ServerRelativeUrl
+    $TargetFolder = $null
+    if ($TargetLibraryName -like "*/*") {
+        $Path = $TargetLibraryName -split "/"
+        $TargetLibraryPath = $Path[0]
+        $ListOfSharePointFolders = Get-PnPFolderItem -ItemType Folder -Recursive -FolderSiteRelativeUrl $TargetLibraryPath #| Select-Object Name, ServerRelativeUrl, ItemCount
+        foreach ($Folder in $ListOfSharePointFolders) {
+            $FolderFound = $Folder.ServerRelativeUrl.Replace($Web.ServerRelativeURL, [string]::Empty)
+            if ($FolderFound.TrimStart("/") -eq $TargetLibraryName.TrimStart("/")) {
+                $TargetFolder = $Folder
+                break
+            }
+        }
+    } else {
+        $TargetFolder = $Library.RootFolder
+    }
 
+    if (-not $TargetFolder) {
+        Write-Color -Text "[e] ", "Unable to find folder ", $TargetLibraryName, " in the library. Please make sure the folder exists." -Color Yellow, Red
+        return
+    }
 
     # Get the site relative path of the target folder
     If ($web.ServerRelativeURL -eq "/") {
@@ -116,10 +132,12 @@
         $TargetFolderSiteRelativeURL = $TargetFolder.ServerRelativeURL.Replace($Web.ServerRelativeUrl, [string]::Empty)
     }
 
-    [Array] $Source = Get-FilesLocal -SourceFileList $SourceFileList -SourceFolderPath $SourceFolderPath -Include $Include
+    $FilesLocalOutput = Get-FilesLocal -SourceFileList $SourceFileList -SourceFolderPath $SourceFolderPath -Include $Include -TargetFolderSiteRelativeURL $TargetFolderSiteRelativeURL
+    [Array] $Source = $FilesLocalOutput.Source
+    [string] $SourceDirectoryPath = $FilesLocalOutput.SourceDirectoryPath
 
     Write-Color -Text "[i] ", "Total items in source: ", "$($Source.Count)" -Color Yellow, White, Green
-    Write-Color -Text "[i] ", "Total items in target: ", "$($Library.Itemcount)" -Color Yellow, White, Green
+    Write-Color -Text "[i] ", "Total items in target: ", "$($TargetFolder.Itemcount)" -Color Yellow, White, Green
 
     Write-Color -Text "[i] ", "Starting processing files/folders to SharePoint ", $SiteUrl -Color Yellow, White, Green
 
