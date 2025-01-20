@@ -43,12 +43,10 @@
                     $ActionsToDo["Update"].Add($File)
                 } elseif ($Source.PSIsContainer -ne $TargetFile.PSiSContainer -or $Source.TargetItemURL -ne $TargetFile.TargetItemURL) {
                     # not really needed here
-                    # $ActionsToDo["Remove"].Add($File)
                     Write-Color -Text "This should never happen 1" -Color Red
                 } else {
                     # this should never happen right?
                     Write-Color -Text "This should never happen 2" -Color Red
-                    #$ActionsToDo["Add"].Add($File)
                 }
             }
         } else {
@@ -59,7 +57,6 @@
     Write-Color -Text "[i] ", "Total items to update: ", "$($ActionsToDo['Update'].Count)" -Color Yellow, White, Green
     Write-Color -Text "[i] ", "Total items to add: ", "$($ActionsToDo['Add'].Count)" -Color Yellow, White, Green
     Write-Color -Text "[i] ", "Total items matching: ", "$($ActionsToDo['Nothing'].Count)" -Color Yellow, White, Green
-
 
     $Counter = 1
     foreach ($SourceFile in $ActionsToDo["Add"] | Sort-Object TargetItemURL) {
