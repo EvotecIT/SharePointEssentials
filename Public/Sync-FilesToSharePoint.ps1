@@ -136,8 +136,9 @@
     [Array] $Source = $FilesLocalOutput.Source
     [string] $SourceDirectoryPath = $FilesLocalOutput.SourceDirectoryPath
 
-    Write-Color -Text "[i] ", "Total items in source: ", "$($Source.Count)" -Color Yellow, White, Green
-    Write-Color -Text "[i] ", "Total items in target: ", "$($TargetFolder.Itemcount)" -Color Yellow, White, Green
+    Write-Color -Text "[i] ", "Total items (files) in source: ", "$($FilesLocalOutput.SourceFilesCount)" -Color Yellow, White, Green
+    Write-Color -Text "[i] ", "Total items (folders) in source: ", "$($FilesLocalOutput.SourceDirectoryCount)" -Color Yellow, White, Green
+    #Write-Color -Text "[i] ", "Total items in target: ", "$($TargetFolder.Itemcount)" -Color Yellow, White, Green
 
     Write-Color -Text "[i] ", "Starting processing files/folders to SharePoint ", $SiteUrl -Color Yellow, White, Green
 
