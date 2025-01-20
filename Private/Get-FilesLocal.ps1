@@ -53,6 +53,8 @@
             return
         }
     }
+    $SourceFilesCount = 0
+    $SourceDirectoryCount = 0
     [Array] $Source = foreach ($File in $SourceItems | Sort-Object -Unique -Property FullName) {
         # Dates are not the same as in SharePoint, so we need to convert them to UTC
         # And make sure we don't add miliseconds, as it will cause issues with comparison
@@ -63,9 +65,16 @@
             TargetItemURL = $File.FullName.Replace($SourceDirectoryPath, $TargetFolderSiteRelativeURL).Replace("\", "/")
             LastUpdated   = [datetime]::new($Date.Year, $Date.Month, $Date.Day, $Date.Hour, $Date.Minute, $Date.Second)
         }
+        if (-not $File.PSIsContainer) {
+            $SourceFilesCount++
+        } else {
+            $SourceDirectoryCount++
+        }
     }
     [ordered] @{
-        Source              = $Source
-        SourceDirectoryPath = $SourceDirectoryPath
+        Source               = $Source
+        SourceFilesCount     = $SourceFilesCount
+        SourceDirectoryCount = $SourceDirectoryCount
+        SourceDirectoryPath  = $SourceDirectoryPath
     }
 }
