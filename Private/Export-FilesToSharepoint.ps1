@@ -7,6 +7,8 @@
         [Parameter(Mandatory)][Microsoft.SharePoint.Client.ClientObject] $TargetFolder
     )
     # Get all files from SharePoint Online
+    $TargetFilesCount = 0
+    $TargetDirectoryCount = 0
     $TargetFiles = Get-PnPListItem -List $TargetLibraryName -PageSize 2000
     $Target = foreach ($File in $TargetFiles) {
         # Dates are not the same as in SharePoint, so we need to convert them to UTC
@@ -19,11 +21,20 @@
                 TargetItemURL = $File.FieldValues.FileRef.Replace($Web.ServerRelativeUrl, [string]::Empty)
                 LastUpdated   = [datetime]::new($Date.Year, $Date.Month, $Date.Day, $Date.Hour, $Date.Minute, $Date.Second)
             }
+            if (-not $File.FileSystemObjectType -eq "Folder") {
+                $TargetFilesCount++
+            } else {
+                $TargetDirectoryCount++
+            }
             #Write-Color -Text "[i] ", "File ", "'$($File.FieldValues.FileRef)'", " is in the target folder." -Color Yellow, White, Yellow
         } else {
             #Write-Color -Text "[!] ", "File ", "'$($File.FieldValues.FileRef)'", " is not in the target folder. Skipping." -Color Yellow, White, Yellow, Red
         }
     }
+
+    Write-Color -Text "[i] ", "Total items (files) in target: ", "$($TargetFilesCount)" -Color Yellow, White, Green
+    Write-Color -Text "[i] ", "Total items (folders) in target: ", "$($TargetDirectoryCount)" -Color Yellow, White, Green
+
     # Compare source/target and add files that are not in the target
     $CacheFilesTarget = [ordered] @{}
     $ActionsToDo = [ordered] @{
