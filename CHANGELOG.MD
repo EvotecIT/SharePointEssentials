@@ -1,4 +1,7 @@
-﻿### 1.0.7
+﻿### 1.0.8
+- Improvements to synchronization process to nested folders
+
+### 1.0.7
 - Add ability to synchronize specific files only
 - Add ability to skip removal of files
 
