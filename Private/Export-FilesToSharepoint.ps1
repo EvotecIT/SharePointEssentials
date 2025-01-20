@@ -6,18 +6,22 @@
         [Parameter(Mandatory)][string] $TargetLibraryName,
         [Parameter(Mandatory)][Microsoft.SharePoint.Client.ClientObject] $TargetFolder
     )
-
     # Get all files from SharePoint Online
     $TargetFiles = Get-PnPListItem -List $TargetLibraryName -PageSize 2000
     $Target = foreach ($File in $TargetFiles) {
         # Dates are not the same as in SharePoint, so we need to convert them to UTC
         # And make sure we don't add miliseconds
         $Date = $File.FieldValues.Modified.ToUniversalTime()
-        [PSCustomObject] @{
-            FullName      = $File.FieldValues.FileRef.Replace($TargetFolder.ServerRelativeURL, $SourceFolderPath).Replace("/", "\")
-            PSIsContainer = $File.FileSystemObjectType -eq "Folder"
-            TargetItemURL = $File.FieldValues.FileRef.Replace($Web.ServerRelativeUrl, [string]::Empty)
-            LastUpdated   = [datetime]::new($Date.Year, $Date.Month, $Date.Day, $Date.Hour, $Date.Minute, $Date.Second)
+        if ($File.FieldValues.FileRef -like "$($TargetFolder.ServerRelativeUrl)/*") {
+            [PSCustomObject] @{
+                FullName      = $File.FieldValues.FileRef.Replace($TargetFolder.ServerRelativeURL, $SourceFolderPath).Replace("/", "\")
+                PSIsContainer = $File.FileSystemObjectType -eq "Folder"
+                TargetItemURL = $File.FieldValues.FileRef.Replace($Web.ServerRelativeUrl, [string]::Empty)
+                LastUpdated   = [datetime]::new($Date.Year, $Date.Month, $Date.Day, $Date.Hour, $Date.Minute, $Date.Second)
+            }
+            #Write-Color -Text "[i] ", "File ", "'$($File.FieldValues.FileRef)'", " is in the target folder." -Color Yellow, White, Yellow
+        } else {
+            #Write-Color -Text "[!] ", "File ", "'$($File.FieldValues.FileRef)'", " is not in the target folder. Skipping." -Color Yellow, White, Yellow, Red
         }
     }
     # Compare source/target and add files that are not in the target
