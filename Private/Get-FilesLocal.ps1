@@ -1,9 +1,10 @@
 ﻿function Get-FilesLocal {
     [CmdletBinding()]
     param(
-        $SourceFileList,
-        $SourceFolderPath,
-        $Include
+        [Array] $SourceFileList,
+        [string] $SourceFolderPath,
+        [string] $Include,
+        [string] $TargetFolderSiteRelativeURL
     )
     if ($SourceFileList) {
         $SourceDirectoryPath = $null
@@ -52,7 +53,7 @@
             return
         }
     }
-    foreach ($File in $SourceItems | Sort-Object -Unique -Property FullName) {
+    [Array] $Source = foreach ($File in $SourceItems | Sort-Object -Unique -Property FullName) {
         # Dates are not the same as in SharePoint, so we need to convert them to UTC
         # And make sure we don't add miliseconds, as it will cause issues with comparison
         $Date = $File.LastWriteTimeUtc
@@ -62,5 +63,9 @@
             TargetItemURL = $File.FullName.Replace($SourceDirectoryPath, $TargetFolderSiteRelativeURL).Replace("\", "/")
             LastUpdated   = [datetime]::new($Date.Year, $Date.Month, $Date.Day, $Date.Hour, $Date.Minute, $Date.Second)
         }
+    }
+    [ordered] @{
+        Source              = $Source
+        SourceDirectoryPath = $SourceDirectoryPath
     }
 }
