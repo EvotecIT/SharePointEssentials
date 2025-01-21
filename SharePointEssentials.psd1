@@ -8,7 +8,7 @@
     Description          = 'Project to help with SharePoint synchronnization of files'
     FunctionsToExport    = 'Sync-FilesToSharePoint'
     GUID                 = 'e9e31850-6388-4aa5-8e2b-897f6ac1866a'
-    ModuleVersion        = '1.0.8'
+    ModuleVersion        = '1.0.9'
     PowerShellVersion    = '5.1'
     PrivateData          = @{
         PSData = @{
