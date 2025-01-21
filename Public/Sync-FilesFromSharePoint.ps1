@@ -28,7 +28,7 @@
         return
     }
     try {
-        $Library = Get-PnPList -Identity $TargetLibraryName -Includes RootFolder -ErrorAction Stop
+        $Library = Get-PnPList -Identity $SourceLibraryName -Includes RootFolder -ErrorAction Stop
     } catch {
         Write-Color -Text "[e] ", "Unable to get list of libraries on SharePoint Online. Make sure that you have permissions to the site." -Color Yellow, Red
         Write-Color -Text "[e] ", "Error: ", $_.Exception.Message -Color Yellow, Red
