@@ -11,7 +11,7 @@
     # Get all files on SharePoint Online
     $TargetFiles = Get-PnPListItem -List $TargetLibraryName -PageSize 2000
 
-    $Target = foreach ($File in $TargetFiles) {
+    [Array] $Target = foreach ($File in $TargetFiles) {
         $Date = $File.FieldValues.Modified.ToUniversalTime()
         if ($File.FieldValues.FileRef -like "$($TargetFolder.ServerRelativeUrl)/*") {
             [PSCustomObject] @{
@@ -28,11 +28,20 @@
 
     # Compare source/target and remove files that are not in the source
     # Ignore LastUpdated as it doesn't matter - the file either exists or it doesn't
-    $FilesDiff = Compare-Object -ReferenceObject $Source -DifferenceObject $Target -Property FullName, PSIsContainer, TargetItemURL #, LastUpdated
-    [Array] $TargetDelta = foreach ($File in $FilesDiff) {
-        If ($File.SideIndicator -eq "=>") {
-            $File
+    if ($Target.Count -eq 0) {
+        Write-Color -Text "[i] ", "No items found in the Target. Skipping removal." -Color Yellow, White, Green
+        return
+    }
+
+    if ($Source.Count -gt 0) {
+        $FilesDiff = Compare-Object -ReferenceObject $Source -DifferenceObject $Target -Property FullName, PSIsContainer, TargetItemURL #, LastUpdated
+        [Array] $TargetDelta = foreach ($File in $FilesDiff) {
+            If ($File.SideIndicator -eq "=>") {
+                $File
+            }
         }
+    } else {
+        $TargetDelta = $Target
     }
 
     If ($TargetDelta.Count -gt 0) {
