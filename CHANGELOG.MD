@@ -1,4 +1,7 @@
-﻿### 1.0.8
+﻿### 1.0.9
+- Fixes to synchronization process when Target has no files
+
+### 1.0.8
 - Improvements to synchronization process to nested folders
 
 ### 1.0.7
