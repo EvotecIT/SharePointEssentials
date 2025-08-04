@@ -4,12 +4,18 @@
         [Parameter(Mandatory)][Array] $Source,
         [Parameter(Mandatory)][string] $SourceFolderPath,
         [Parameter(Mandatory)][string] $TargetLibraryName,
-        [Parameter(Mandatory)][Microsoft.SharePoint.Client.ClientObject] $TargetFolder
+        [Parameter(Mandatory)][Microsoft.SharePoint.Client.ClientObject] $TargetFolder,
+        [Parameter(Mandatory)][Microsoft.SharePoint.Client.Web] $Web
     )
     # Get all files from SharePoint Online
     $TargetFilesCount = 0
     $TargetDirectoryCount = 0
-    $TargetFiles = Get-PnPListItem -List $TargetLibraryName -PageSize 2000
+    try {
+        $TargetFiles = Get-PnPListItem -List $TargetLibraryName -PageSize 2000 -ErrorAction Stop
+    } catch {
+        Write-Color -Text "[!] ", "Failed to retrieve list items for ", "'$TargetLibraryName'", ". Error: ", $_.Exception.Message -Color Yellow, White, Yellow, White, Red
+        return
+    }
     $Target = foreach ($File in $TargetFiles) {
         # Dates are not the same as in SharePoint, so we need to convert them to UTC
         # And make sure we don't add miliseconds

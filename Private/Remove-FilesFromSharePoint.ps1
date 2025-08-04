@@ -6,10 +6,16 @@
         [Parameter(Mandatory)] [string] $SourceFolderPath,
         [Parameter(Mandatory)] [string] $TargetLibraryName,
         $TargetFolder,
+        [Parameter(Mandatory)][Microsoft.SharePoint.Client.Web] $Web,
         [string[]] $ExcludeFromRemoval
     )
     # Get all files on SharePoint Online
-    $TargetFiles = Get-PnPListItem -List $TargetLibraryName -PageSize 2000
+    try {
+        $TargetFiles = Get-PnPListItem -List $TargetLibraryName -PageSize 2000 -ErrorAction Stop
+    } catch {
+        Write-Color -Text "[!] ", "Failed to retrieve list items for ", "'$TargetLibraryName'", ". Error: ", $_.Exception.Message -Color Yellow, White, Yellow, White, Red
+        return
+    }
 
     [Array] $Target = foreach ($File in $TargetFiles) {
         $Date = $File.FieldValues.Modified.ToUniversalTime()
