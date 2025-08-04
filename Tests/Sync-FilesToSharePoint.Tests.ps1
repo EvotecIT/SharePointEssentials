@@ -43,4 +43,44 @@ Describe 'Sync-FilesToSharePoint' {
             $null -eq $ExcludeFromRemoval
         }
     }
+
+    It 'skips removal when SkipRemoval is specified' {
+        $dummySource = @('file1')
+        $targetFolder = [Microsoft.SharePoint.Client.ClientObject]::new()
+        $targetFolder.ServerRelativeUrl = '/Shared Documents'
+
+        Mock Get-PnPWeb { @{ ServerRelativeUrl = '/' } }
+        Mock Get-PnPList { @{ RootFolder = @{ ServerRelativeUrl = '/Shared Documents' } } }
+        Mock Find-TargetFolder { $targetFolder }
+        Mock Get-FilesLocal { @{ Source = $dummySource; SourceDirectoryPath = '/tmp'; SourceFilesCount = 0; SourceDirectoryCount = 0 } }
+        Mock Export-FilesToSharePoint { }
+        Mock Remove-FilesFromSharePoint { }
+
+        Sync-FilesToSharePoint -SiteURL 'https://contoso.sharepoint.com/sites/test' -SourceFolderPath '/tmp' -TargetLibraryName 'Shared Documents' -SkipRemoval -WhatIf
+
+        Assert-MockCalled Remove-FilesFromSharePoint -Times 0
+    }
+
+    It 'passes ExcludeFromRemoval to Remove-FilesFromSharePoint' {
+        $dummySource = @('file1')
+        $targetFolder = [Microsoft.SharePoint.Client.ClientObject]::new()
+        $targetFolder.ServerRelativeUrl = '/Shared Documents'
+        $exclude = @('keep.txt','stay/dir')
+        $siteUrl = 'https://contoso.sharepoint.com/sites/test'
+
+        Mock Get-PnPWeb { @{ ServerRelativeUrl = '/' } }
+        Mock Get-PnPList { @{ RootFolder = @{ ServerRelativeUrl = '/Shared Documents' } } }
+        Mock Find-TargetFolder { $targetFolder }
+        Mock Get-FilesLocal { @{ Source = $dummySource; SourceDirectoryPath = '/tmp'; SourceFilesCount = 0; SourceDirectoryCount = 0 } }
+        Mock Export-FilesToSharePoint { }
+        Mock Remove-FilesFromSharePoint { }
+
+        Sync-FilesToSharePoint -SiteURL $siteUrl -SourceFolderPath '/tmp' -TargetLibraryName 'Shared Documents' -ExcludeFromRemoval $exclude -WhatIf
+
+        Assert-MockCalled Remove-FilesFromSharePoint -Times 1 -ParameterFilter {
+            $SiteURL -eq $siteUrl -and
+            $ExcludeFromRemoval -and
+            ($ExcludeFromRemoval -join ',') -eq ($exclude -join ',')
+        }
+    }
 }
