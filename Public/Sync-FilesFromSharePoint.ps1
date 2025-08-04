@@ -39,6 +39,27 @@ Function Sync-FilesFromSharePoint {
 
     .PARAMETER SkipRemoval
     Skip removal of files/folders from local folder. Default $false
+    
+    .EXAMPLE
+    $Url = 'https://yoursharepoint.sharepoint.com/sites/TheDashboard'
+    $ClientID = '438511c4' # Temp SharePoint App
+    $TenantID = 'ceb371f6'
+
+    Connect-PnPOnline -Url $Url -ClientId $ClientID -Thumbprint '2EC7C86E1AF0E434E93DE3EAC' -Tenant $TenantID
+
+    $syncFiles = @{
+        SiteURL          = 'https://yoursharepoint.sharepoint.com/sites/TheDashboard'
+        TargetFolderPath = "C:\\Support\\GitHub\\TheDashboard\\Examples\\Reports"
+        SourceLibraryName = "Shared Documents"
+        LogPath          = "$PSScriptRoot\\Logs\\Sync-FilesFromSharePoint-$($(Get-Date).ToString('yyyy-MM-dd_HH_mm_ss')).log"
+        LogMaximum       = 5
+        Include          = "*.aspx"
+    }
+
+    Sync-FilesFromSharePoint @syncFiles -WhatIf
+
+    .NOTES
+    General notes
     #>
     [CmdletBinding(SupportsShouldProcess)]
     param(
