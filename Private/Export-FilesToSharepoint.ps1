@@ -4,7 +4,8 @@
         [Parameter(Mandatory)][Array] $Source,
         [Parameter(Mandatory)][string] $SourceFolderPath,
         [Parameter(Mandatory)][string] $TargetLibraryName,
-        [Parameter(Mandatory)][Microsoft.SharePoint.Client.ClientObject] $TargetFolder
+        [Parameter(Mandatory)][Microsoft.SharePoint.Client.ClientObject] $TargetFolder,
+        [Parameter(Mandatory)][Microsoft.SharePoint.Client.Web] $Web
     )
     # Get all files from SharePoint Online
     $TargetFilesCount = 0

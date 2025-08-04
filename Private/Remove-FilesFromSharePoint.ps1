@@ -6,6 +6,7 @@
         [Parameter(Mandatory)] [string] $SourceFolderPath,
         [Parameter(Mandatory)] [string] $TargetLibraryName,
         $TargetFolder,
+        [Parameter(Mandatory)][Microsoft.SharePoint.Client.Web] $Web,
         [string[]] $ExcludeFromRemoval
     )
     # Get all files on SharePoint Online

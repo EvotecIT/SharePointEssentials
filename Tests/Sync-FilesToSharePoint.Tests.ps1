@@ -5,8 +5,8 @@ BeforeAll {
     function Get-PnPList {}
     function Get-FilesLocal {}
     function Find-TargetFolder {}
-    function Export-FilesToSharePoint { param($Source,$SourceFolderPath,$TargetLibraryName,$TargetFolder,[switch]$WhatIf) }
-    function Remove-FilesFromSharePoint { param($Source,$SiteURL,$SourceFolderPath,$TargetLibraryName,$TargetFolder,[switch]$WhatIf,$ExcludeFromRemoval) }
+    function Export-FilesToSharePoint { param($Source,$SourceFolderPath,$TargetLibraryName,$TargetFolder,$Web,[switch]$WhatIf) }
+    function Remove-FilesFromSharePoint { param($Source,$SiteURL,$SourceFolderPath,$TargetLibraryName,$TargetFolder,$Web,[switch]$WhatIf,$ExcludeFromRemoval) }
     Add-Type 'namespace Microsoft.SharePoint.Client { public class ClientObject { public string ServerRelativeUrl {get;set;} } }'
     . "$PSScriptRoot/../Public/Sync-FilesToSharePoint.ps1"
 }
@@ -30,6 +30,7 @@ Describe 'Sync-FilesToSharePoint' {
         Assert-MockCalled Export-FilesToSharePoint -Times 1 -ParameterFilter {
             $SourceFolderPath -eq '/tmp' -and
             $TargetLibraryName -eq 'Shared Documents' -and
+            $Web.ServerRelativeUrl -eq '/' -and
             $WhatIf
         }
 
@@ -37,6 +38,7 @@ Describe 'Sync-FilesToSharePoint' {
             $SiteURL -eq $siteUrl -and
             $SourceFolderPath -eq '/tmp' -and
             $TargetLibraryName -eq 'Shared Documents' -and
+            $Web.ServerRelativeUrl -eq '/' -and
             $WhatIf -and
             $null -eq $ExcludeFromRemoval
         }

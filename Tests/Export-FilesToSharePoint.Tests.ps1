@@ -3,12 +3,14 @@ BeforeAll {
     function Add-PnPFile {}
     function Get-PnPListItem {}
     Add-Type 'namespace Microsoft.SharePoint.Client { public class ClientObject { public string ServerRelativeUrl {get;set;} } }'
+    Add-Type 'namespace Microsoft.SharePoint.Client { public class Web { public string ServerRelativeUrl {get;set;} } }'
     . "$PSScriptRoot/../Private/Export-FilesToSharepoint.ps1"
 }
 
 Describe 'Export-FilesToSharePoint' {
     It 'uploads only when files differ from target' {
-        $Web = [pscustomobject]@{ ServerRelativeUrl = '/' }
+        $Web = [Microsoft.SharePoint.Client.Web]::new()
+        $Web.ServerRelativeUrl = '/'
         $targetFolder = [Microsoft.SharePoint.Client.ClientObject]::new()
         $targetFolder.ServerRelativeUrl = '/Shared Documents'
         $source = @(
@@ -39,7 +41,7 @@ Describe 'Export-FilesToSharePoint' {
         }
         Mock Add-PnPFile {}
 
-        Export-FilesToSharePoint -Source $source -SourceFolderPath 'C:\\local' -TargetLibraryName 'Shared Documents' -TargetFolder $targetFolder
+        Export-FilesToSharePoint -Source $source -SourceFolderPath 'C:\\local' -TargetLibraryName 'Shared Documents' -TargetFolder $targetFolder -Web $Web
 
         Assert-MockCalled Add-PnPFile -Times 1
     }

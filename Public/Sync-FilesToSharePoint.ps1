@@ -132,6 +132,7 @@
         SourceFolderPath  = $SourceDirectoryPath
         TargetLibraryName = $TargetLibraryName
         TargetFolder      = $TargetFolder
+        Web               = $Web
         WhatIf            = $WhatIfPreference
     }
     Export-FilesToSharePoint @exportFilesToSharePointSplat
@@ -146,6 +147,7 @@
             SourceFolderPath   = $SourceDirectoryPath
             TargetLibraryName  = $TargetLibraryName
             TargetFolder       = $TargetFolder
+            Web                = $Web
             WhatIf             = $WhatIfPreference
             ExcludeFromRemoval = $ExcludeFromRemoval
         }
