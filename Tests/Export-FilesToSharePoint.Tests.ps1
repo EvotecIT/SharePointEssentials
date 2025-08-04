@@ -45,4 +45,18 @@ Describe 'Export-FilesToSharePoint' {
 
         Assert-MockCalled Add-PnPFile -Times 1
     }
+
+    It 'aborts when Get-PnPListItem fails' {
+        $Web = [Microsoft.SharePoint.Client.Web]::new()
+        $targetFolder = [Microsoft.SharePoint.Client.ClientObject]::new()
+        Mock Get-PnPListItem { throw 'fail' }
+        Mock Add-PnPFile {}
+        Mock Write-Color {}
+
+        $source = @([pscustomobject]@{})
+        Export-FilesToSharePoint -Source $source -SourceFolderPath 'C:\local' -TargetLibraryName 'Shared Documents' -TargetFolder $targetFolder -Web $Web
+
+        Assert-MockCalled Write-Color -Times 1
+        Assert-MockCalled Add-PnPFile -Times 0
+    }
 }
