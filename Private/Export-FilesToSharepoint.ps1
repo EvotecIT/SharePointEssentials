@@ -51,12 +51,12 @@
         if ($CacheFilesTarget[$File.FullName]) {
             if (-not $File.PSIsContainer) {
                 $TargetFile = $CacheFilesTarget[$File.FullName]
-                if ($Source.PSIsContainer -eq $TargetFile.PSiSContainer -and $Source.TargetItemURL -eq $TargetFile.TargetItemURL -and $Source.LastUpdated -eq $TargetFile.LastUpdated) {
+                if ($File.PSIsContainer -eq $TargetFile.PSiSContainer -and $File.TargetItemURL -eq $TargetFile.TargetItemURL -and $File.LastUpdated -eq $TargetFile.LastUpdated) {
                     $ActionsToDo["Nothing"].Add($File)
-                } elseif ($Source.PSIsContainer -eq $TargetFile.PSiSContainer -and $Source.TargetItemURL -eq $TargetFile.TargetItemURL -and $Source.LastUpdated -ne $TargetFile.LastUpdated) {
+                } elseif ($File.PSIsContainer -eq $TargetFile.PSiSContainer -and $File.TargetItemURL -eq $TargetFile.TargetItemURL -and $File.LastUpdated -ne $TargetFile.LastUpdated) {
                     #Write-Color -Text "[>] Update ", $($File.FullName), " is required. Dates are different: ", "$($File.LastUpdated)", " vs ", "$($TargetFile.LastUpdated)" -Color Yellow, White, Yellow, White, Yellow, Red
                     $ActionsToDo["Update"].Add($File)
-                } elseif ($Source.PSIsContainer -ne $TargetFile.PSiSContainer -or $Source.TargetItemURL -ne $TargetFile.TargetItemURL) {
+                } elseif ($File.PSIsContainer -ne $TargetFile.PSiSContainer -or $File.TargetItemURL -ne $TargetFile.TargetItemURL) {
                     # not really needed here
                     Write-Color -Text "This should never happen 1" -Color Red
                 } else {
