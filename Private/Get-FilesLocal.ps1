@@ -39,14 +39,11 @@
             Path    = $SourceFolderPath
             Recurse = $true
         }
-        if ($Include) {
-            $getChildItemSplat["Include"] = $Include
-        }
         try {
-            $SourceItems = @(
-                Get-ChildItem -Directory -Path $SourceFolderPath -Recurse -ErrorAction Stop
-                Get-ChildItem @getChildItemSplat -ErrorAction Stop
-            )
+            $SourceItems = Get-ChildItem @getChildItemSplat -ErrorAction Stop
+            if ($Include) {
+                $SourceItems = $SourceItems.Where({ $_.PSIsContainer -or $_.Name -like $Include })
+            }
         } catch {
             Write-Color -Text "[e] ", "Unable to get files from the source folder. Make sure the path is correct and you have permissions to access it." -Color Yellow, Red
             Write-Color -Text "[e] ", "Error: ", $_.Exception.Message -Color Yellow, Red
