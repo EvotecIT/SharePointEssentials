@@ -1,4 +1,7 @@
-﻿### 1.0.9
+﻿### 1.0.10
+- Fixes potential synchronization issues
+
+### 1.0.9
 - Fixes to synchronization process when Target has no files
 
 ### 1.0.8
