@@ -1,6 +1,6 @@
 ﻿<p align="center">
   <a href="https://www.powershellgallery.com/packages/SharePointEssentials"><img src="https://img.shields.io/powershellgallery/v/SharePointEssentials.svg"></a>
-  <a href="https://www.powershellgallery.com/packages/SharePointEssentials"><img src="https://img.shields.io/powershellgallery/vpre/SharePointEssentials.svg?label=powershell%20gallery%20preview&colorB=yellow"></a>
+  <a href="https://www.powershellgallery.com/packages/SharePointEssentials"><img src="https://img.shields.io/powershellgallery/v/SharePointEssentials.svg?label=powershell%20gallery%20preview&colorB=yellow&include_prereleases"></a>
   <a href="https://github.com/EvotecIT/SharePointEssentials"><img src="https://img.shields.io/github/license/EvotecIT/SharePointEssentials.svg"></a>
 </p>
 
