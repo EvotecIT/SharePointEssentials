@@ -23,11 +23,44 @@ So far the only thing it can do is to synchronize files from local folder to Sha
 
 ### Installation
 
+Install the PnP provider that matches the PowerShell host. SharePointEssentials
+selects and validates that provider when it is imported.
+
+PowerShell 7.4 or newer uses the maintained PnP.PowerShell 3.x provider:
+
 ```powershell
-Install-Module SharePointEssentials -Force -Verbose
+Install-Module PnP.PowerShell -MinimumVersion 3.2.0 -Scope CurrentUser
+Install-Module SharePointEssentials -Force
+```
+
+Windows PowerShell 5.1 uses PnP.PowerShell 1.12.0. This is the final 1.x
+release and includes the .NET Framework assembly needed by Windows PowerShell.
+The exact version is intentional: later PnP.PowerShell releases require
+PowerShell 7. Use PowerShell 7 and the current 3.x line for maintained PnP
+functionality and security updates.
+
+```powershell
+Install-Module PnP.PowerShell -RequiredVersion 1.12.0 -Scope CurrentUser
+Install-Module SharePointEssentials -Force
 ```
 
 ### Usage Synchronization
+
+When uploading selected files, use `SourceRootPath` to preserve their directory
+structure even when every selected file is in one subfolder:
+
+```powershell
+Sync-FilesToSharePoint -SiteURL 'https://contoso.sharepoint.com/sites/reports' `
+    -SourceFileList 'C:\Reports\Custom\Report.html' -SourceRootPath 'C:\Reports' `
+    -TargetLibraryName 'Shared Documents' -SkipRemoval -WhatIf
+```
+
+This maps the file to `Shared Documents/Custom/Report.html`. Without an explicit
+root, file lists use their common parent directory. `SourceRootPath` applies to
+`SourceFileList`; folder synchronization uses `SourceFolderPath` as its root.
+Unreadable inputs stop synchronization. Upload synchronization also refuses an
+empty inventory. `SkipRemoval` preserves remote files absent from the selected
+list; omit it only when that list defines the complete content to retain.
 
 #### Creating SharePoint Sites
 

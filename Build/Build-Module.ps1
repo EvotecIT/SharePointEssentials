@@ -1,4 +1,24 @@
-Build-Module -ModuleName 'SharePointEssentials' {
+﻿<#
+.SYNOPSIS
+Builds or publishes SharePointEssentials through PSPublishModule.
+.PARAMETER ConfigurationGateMode
+Selects manifest refresh, local build, or publication.
+.PARAMETER SignModule
+Signs release files with the configured Evotec certificate.
+.PARAMETER PowerShellGalleryApiKeyPath
+Path to the Gallery publication credential.
+.PARAMETER GitHubApiKeyPath
+Path to the GitHub publication credential.
+#>
+param(
+    [ValidateSet('Manifest', 'Build', 'Publish')]
+    [string] $ConfigurationGateMode = 'Build',
+    [bool] $SignModule = $true,
+    [string] $PowerShellGalleryApiKeyPath = 'C:\Support\Important\PowerShellGalleryAPI.txt',
+    [string] $GitHubApiKeyPath = 'C:\Support\Important\GitHubAPI.txt'
+)
+Import-Module PSPublishModule -ErrorAction Stop
+Invoke-ModuleBuild -ModuleName 'SharePointEssentials' {
     # Usual defaults as per standard module
     $Manifest = [ordered] @{
         ModuleVersion        = '1.0.X'
@@ -13,16 +33,13 @@ Build-Module -ModuleName 'SharePointEssentials' {
     }
     New-ConfigurationManifest @Manifest
 
-    # Add standard module dependencies (directly, but can be used with loop as well)
-    New-ConfigurationModule -Type RequiredModule -Name @(
-        'PSWriteColor'
-        'PSSharedGoods'
-    ) -Guid 'Auto' -Version 'Latest'
-
-    New-ConfigurationModule -Type RequiredModule -Name 'Pnp.PowerShell' -Guid 'Auto' -Version '1.12.0'
+    # Keep public dependency minimums deterministic. Do not resolve machine-local four-part builds.
+    New-ConfigurationModule -Type RequiredModule -Name 'PSWriteColor' -Guid 'Auto' -Version '1.0.1'
+    New-ConfigurationModule -Type RequiredModule -Name 'PSSharedGoods' -Guid 'Auto' -Version '0.0.303'
 
     # Add external module dependencies, using loop for simplicity
     New-ConfigurationModule -Type ExternalModule -Name @(
+        'PnP.PowerShell'
         'Microsoft.PowerShell.Management'
         'Microsoft.PowerShell.Utility'
     )
@@ -69,16 +86,17 @@ Build-Module -ModuleName 'SharePointEssentials' {
     # when creating PSD1 use special style without comments and with only required parameters
     New-ConfigurationFormat -ApplyTo 'DefaultPSD1', 'OnMergePSD1' -PSD1Style 'Minimal'
     # configuration for documentation, at the same time it enables documentation processing
-    New-ConfigurationDocumentation -Enable:$false -StartClean -UpdateWhenNew -PathReadme 'Docs\Readme.md' -Path 'Docs'
+    New-ConfigurationDocumentation -Enable:$false -PathReadme 'Docs\Readme.md' -Path 'Docs'
 
     New-ConfigurationImportModule -ImportSelf
 
-    New-ConfigurationBuild -Enable:$true -SignModule -MergeModuleOnBuild -MergeFunctionsFromApprovedModules -CertificateThumbprint '483292C9E317AA13B07BB7A96AE9D1A5ED9E7703'
+    New-ConfigurationBuild -Enable:$true -SignModule:$SignModule -MergeModuleOnBuild -MergeFunctionsFromApprovedModules -CertificateThumbprint '92e95fb58effa6a4a75e77a33cdd6bfe6dd30f1a'
 
-    New-ConfigurationArtefact -Type Unpacked -Enable -Path "$PSScriptRoot\..\Artefacts\Unpacked" -AddRequiredModules
+    New-ConfigurationArtefact -Type Unpacked -Enable -Path "$PSScriptRoot\..\Artefacts\Unpacked" -AddRequiredModules -RequiredModulesSource Download -RequiredModulesRepository PSGallery
     New-ConfigurationArtefact -Type Packed -Enable -Path "$PSScriptRoot\..\Artefacts\Packed" -ArtefactName '<ModuleName>.v<ModuleVersion>.zip'
 
     # options for publishing to github/psgallery
-    #New-ConfigurationPublish -Type PowerShellGallery -FilePath 'C:\Support\Important\PowerShellGalleryAPI.txt' -Enabled:$true
-    #New-ConfigurationPublish -Type GitHub -FilePath 'C:\Support\Important\GitHubAPI.txt' -UserName 'EvotecIT' -Enabled:$true
-}
+    New-ConfigurationPublish -Type PowerShellGallery -FilePath $PowerShellGalleryApiKeyPath -Enabled:$false
+    New-ConfigurationPublish -Type GitHub -FilePath $GitHubApiKeyPath -UserName 'EvotecIT' -RepositoryName 'SharePointEssentials' -Enabled:$false
+    New-ConfigurationGate -Mode $ConfigurationGateMode
+} -ExitCode -IncludeAll @()

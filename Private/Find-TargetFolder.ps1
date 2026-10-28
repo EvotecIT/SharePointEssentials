@@ -5,13 +5,15 @@
         [Microsoft.SharePoint.Client.List] $Library,
         [Microsoft.SharePoint.Client.Web] $Web
     )
+    $TargetLibraryName = $TargetLibraryName.Trim().Trim('/')
     $TargetFolder = $null
     if ($TargetLibraryName -like "*/*") {
         $Path = $TargetLibraryName -split "/"
         $TargetLibraryPath = $Path[0]
         $ListOfSharePointFolders = Get-PnPFolderItem -ItemType Folder -Recursive -FolderSiteRelativeUrl $TargetLibraryPath #| Select-Object Name, ServerRelativeUrl, ItemCount
         foreach ($Folder in $ListOfSharePointFolders) {
-            $FolderFound = $Folder.ServerRelativeUrl.Replace($Web.ServerRelativeURL, [string]::Empty)
+            $WebPrefix = $Web.ServerRelativeURL.TrimEnd('/')
+            $FolderFound = $Folder.ServerRelativeUrl.Substring($WebPrefix.Length)
             if ($FolderFound.TrimStart("/") -eq $TargetLibraryName.TrimStart("/")) {
                 $TargetFolder = $Folder
                 break
