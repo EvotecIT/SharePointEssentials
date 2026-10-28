@@ -1,4 +1,5 @@
 ﻿BeforeAll {
+    . "$PSScriptRoot/../Private/Get-SharePointSyncPath.ps1"
     function Write-Color {}
     function Set-LoggingCapabilities {}
     function Get-PnPWeb {}

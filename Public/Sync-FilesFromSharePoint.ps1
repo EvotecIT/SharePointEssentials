@@ -123,11 +123,12 @@
     $TargetFiles = Get-PnPListItem -List $ListIdentity -PageSize 2000 -ErrorAction Stop
     [Array] $Source = foreach ($File in $TargetFiles) {
         $Date = $File.FieldValues.Modified.ToUniversalTime()
-        if ($File.FieldValues.FileRef -like "$($TargetFolder.ServerRelativeUrl)/*") {
+        if ($File.FieldValues.FileRef.StartsWith($TargetFolder.ServerRelativeUrl.TrimEnd('/') + '/', [StringComparison]::OrdinalIgnoreCase)) {
+            $Paths = Get-SharePointSyncPath -ServerRelativePath $File.FieldValues.FileRef -RemoteFolderPath $TargetFolder.ServerRelativeUrl -LocalFolderPath $TargetFolderPath -WebPath $Web.ServerRelativeUrl
             [PSCustomObject]@{
-                FullName      = $File.FieldValues.FileRef.Replace($TargetFolder.ServerRelativeURL, $TargetFolderPath).Replace("/", "\\")
+                FullName      = $Paths.FullName
                 PSIsContainer = $File.FileSystemObjectType -eq "Folder"
-                TargetItemURL = $File.FieldValues.FileRef.Replace($Web.ServerRelativeUrl, [string]::Empty)
+                TargetItemURL = $Paths.TargetItemURL
                 LastUpdated   = [datetime]::new($Date.Year, $Date.Month, $Date.Day, $Date.Hour, $Date.Minute, $Date.Second)
             }
             if (-not $File.FileSystemObjectType -eq "Folder") {

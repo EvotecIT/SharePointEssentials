@@ -1,4 +1,5 @@
-BeforeAll {
+﻿BeforeAll {
+    . "$PSScriptRoot/../Private/Get-SharePointSyncPath.ps1"
     function Write-Color {}
     function Add-PnPFile {}
     function Get-PnPListItem {}
@@ -15,13 +16,13 @@ Describe 'Export-FilesToSharePoint' {
         $targetFolder.ServerRelativeUrl = '/Shared Documents'
         $source = @(
             [pscustomobject]@{
-                FullName      = 'C:\\local\\match.txt'
+                FullName      = 'C:\local\match.txt'
                 PSIsContainer = $false
                 TargetItemURL = '/Shared Documents/match.txt'
                 LastUpdated   = [datetime]'2024-01-01'
             },
             [pscustomobject]@{
-                FullName      = 'C:\\local\\update.txt'
+                FullName      = 'C:\local\update.txt'
                 PSIsContainer = $false
                 TargetItemURL = '/Shared Documents/update.txt'
                 LastUpdated   = [datetime]'2024-01-01'
@@ -41,7 +42,7 @@ Describe 'Export-FilesToSharePoint' {
         }
         Mock Add-PnPFile {}
 
-        Export-FilesToSharePoint -Source $source -SourceFolderPath 'C:\\local' -TargetLibraryName 'Shared Documents' -TargetFolder $targetFolder -Web $Web
+        Export-FilesToSharePoint -Source $source -SourceFolderPath 'C:\local' -TargetLibraryName 'Shared Documents' -TargetFolder $targetFolder -Web $Web
 
         Assert-MockCalled Add-PnPFile -Times 1
     }
