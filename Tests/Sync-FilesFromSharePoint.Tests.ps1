@@ -16,6 +16,17 @@
 }
 
 Describe 'Sync-FilesFromSharePoint' {
+    It 'stops before local changes when remote enumeration fails' {
+        Mock Get-PnPWeb { @{ ServerRelativeUrl = '/' } }
+        Mock Get-PnPList { @{ RootFolder = @{ ServerRelativeUrl = '/Shared Documents' } } }
+        Mock Find-TargetFolder { @{ ServerRelativeUrl = '/Shared Documents' } }
+        Mock Get-PnPListItem { throw 'Remote listing failed' }
+        Mock Export-FilesFromSharePoint { }
+        Mock Remove-FilesFromLocal { }
+        { Sync-FilesFromSharePoint -SiteURL 'https://contoso.sharepoint.com' -SourceLibraryName 'Shared Documents' -TargetFolderPath $TestDrive } | Should -Throw '*Remote listing failed*'
+        Assert-MockCalled Export-FilesFromSharePoint -Times 0
+        Assert-MockCalled Remove-FilesFromLocal -Times 0
+    }
     It 'calls private functions to process files' {
         Mock Get-PnPWeb { @{ ServerRelativeUrl = '/' } }
         Mock Get-PnPList { @{ RootFolder = @{ ServerRelativeUrl = '/Shared Documents' } } }

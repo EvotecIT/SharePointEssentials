@@ -85,6 +85,7 @@
     Write-Color -Text "[i] ", "Source library: ", $SourceLibraryName -Color Yellow, White, Green
 
     $ListIdentity = Get-SharePointListIdentity -LibraryPath $SourceLibraryName
+    $TargetFolderPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($TargetFolderPath)
 
     if (-not (Test-Path -Path $TargetFolderPath)) {
         New-Item -ItemType Directory -Path $TargetFolderPath -Force | Out-Null

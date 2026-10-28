@@ -21,10 +21,11 @@
 }
 Describe 'Sync path and retention contracts' {
     It 'updates and retains a selected local file at root and site webs' -TestCases @(
-        @{ WebPath = '/' }
-        @{ WebPath = '/sites/test' }
+        @{ WebPath = '/'; Relative = $false }
+        @{ WebPath = '/sites/test'; Relative = $false }
+        @{ WebPath = '/sites/test'; Relative = $true }
     ) {
-        param($WebPath)
+        param($WebPath, $Relative)
         $root=Join-Path $TestDrive 'local'
         [void][IO.Directory]::CreateDirectory($root)
         $file=Join-Path $root 'Report.html'
@@ -40,7 +41,13 @@ Describe 'Sync path and retention contracts' {
             )
         }
         Mock Get-PnPFile { [IO.File]::WriteAllText((Join-Path $Path $FileName),'downloaded') }
-        Sync-FilesFromSharePoint -SiteURL 'https://contoso.sharepoint.com' -SourceLibraryName 'Shared Documents/Reports[1]' -TargetFolderPath $root
+        Push-Location $TestDrive
+        try {
+            $destination = if ($Relative) { './local' } else { $root }
+            Sync-FilesFromSharePoint -SiteURL 'https://contoso.sharepoint.com' -SourceLibraryName 'Shared Documents/Reports[1]' -TargetFolderPath $destination
+        } finally {
+            Pop-Location
+        }
         Test-Path -LiteralPath $file | Should -BeTrue
         [IO.File]::ReadAllText($file) | Should -Be 'downloaded'
         Test-Path -LiteralPath (Join-Path $root 'Other.html') | Should -BeFalse
