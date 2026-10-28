@@ -1,8 +1,8 @@
 ﻿# Get public and private function definition files.
-$Public = @( Get-ChildItem -Path $PSScriptRoot\Public\*.ps1 -ErrorAction SilentlyContinue -Recurse )
-$Private = @( Get-ChildItem -Path $PSScriptRoot\Private\*.ps1 -ErrorAction SilentlyContinue -Recurse )
-$Classes = @( Get-ChildItem -Path $PSScriptRoot\Classes\*.ps1 -ErrorAction SilentlyContinue -Recurse )
-$Enums = @( Get-ChildItem -Path $PSScriptRoot\Enums\*.ps1 -ErrorAction SilentlyContinue -Recurse )
+$Public = @( Get-ChildItem -Path $PSScriptRoot\Public\*.ps1 -ErrorAction SilentlyContinue -Recurse | Sort-Object FullName )
+$Private = @( Get-ChildItem -Path $PSScriptRoot\Private\*.ps1 -ErrorAction SilentlyContinue -Recurse | Sort-Object FullName )
+$Classes = @( Get-ChildItem -Path $PSScriptRoot\Classes\*.ps1 -ErrorAction SilentlyContinue -Recurse | Sort-Object FullName )
+$Enums = @( Get-ChildItem -Path $PSScriptRoot\Enums\*.ps1 -ErrorAction SilentlyContinue -Recurse | Sort-Object FullName )
 # Get all assemblies
 $AssemblyFolders = Get-ChildItem -Path $PSScriptRoot\Lib -Directory -ErrorAction SilentlyContinue
 
@@ -52,6 +52,7 @@ $Assembly = @(
         Get-ChildItem -Path $PSScriptRoot\Lib\$FrameworkNet\*.dll -ErrorAction SilentlyContinue -Recurse
     }
 )
+$Script:SharePointEssentialsDeferPnPInitialization = $true
 $FoundErrors = @(
     Foreach ($Import in @($Assembly)) {
         try {
@@ -92,5 +93,8 @@ if ($FoundErrors.Count -gt 0) {
     Write-Warning "Importing module $ModuleName failed. Fix errors before continuing."
     break
 }
+
+$Script:SharePointEssentialsDeferPnPInitialization = $false
+Initialize-SharePointPnPProvider
 
 Export-ModuleMember -Function '*' -Alias '*'

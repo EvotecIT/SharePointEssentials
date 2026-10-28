@@ -1,4 +1,4 @@
-Function Sync-FilesFromSharePoint {
+﻿Function Sync-FilesFromSharePoint {
     <#
     .SYNOPSIS
     Synchronizes files from SharePoint Online library to local folder
@@ -9,6 +9,7 @@ Function Sync-FilesFromSharePoint {
     - Deleting content on SharePoint Online will delete it locally
     - Adding content to SharePoint Online will add it locally
     - Updating content on SharePoint Online will update it locally
+    A failure to enumerate the remote inventory stops synchronization before local removals.
 
     .PARAMETER SiteURL
     Site URL where the library is located
@@ -58,6 +59,9 @@ Function Sync-FilesFromSharePoint {
 
     Sync-FilesFromSharePoint @syncFiles -WhatIf
 
+    .OUTPUTS
+    Diagnostic messages. No synchronization result object is returned.
+
     .NOTES
     General notes
     #>
@@ -80,6 +84,9 @@ Function Sync-FilesFromSharePoint {
     Write-Color -Text "[i] ", "Starting synchronization of files from ", $SiteURL, " to ", $TargetFolderPath -Color Yellow, White, Yellow, White, Green
     Write-Color -Text "[i] ", "Source library: ", $SourceLibraryName -Color Yellow, White, Green
 
+    $ListIdentity = Get-SharePointListIdentity -LibraryPath $SourceLibraryName
+    $TargetFolderPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($TargetFolderPath)
+
     if (-not (Test-Path -Path $TargetFolderPath)) {
         New-Item -ItemType Directory -Path $TargetFolderPath -Force | Out-Null
     }
@@ -93,7 +100,7 @@ Function Sync-FilesFromSharePoint {
         return
     }
     try {
-        $Library = Get-PnPList -Identity $SourceLibraryName -Includes RootFolder -ErrorAction Stop
+        $Library = Get-PnPList -Identity $ListIdentity -Includes RootFolder -ErrorAction Stop
     } catch {
         Write-Color -Text "[e] ", "Unable to get list of libraries on SharePoint Online. Make sure that you have permissions to the site." -Color Yellow, Red
         Write-Color -Text "[e] ", "Error: ", $_.Exception.Message -Color Yellow, Red
@@ -114,14 +121,15 @@ Function Sync-FilesFromSharePoint {
     # Get files from SharePoint Online
     $TargetFilesCount = 0
     $TargetDirectoryCount = 0
-    $TargetFiles = Get-PnPListItem -List $SourceLibraryName -PageSize 2000
+    $TargetFiles = Get-PnPListItem -List $ListIdentity -PageSize 2000 -ErrorAction Stop
     [Array] $Source = foreach ($File in $TargetFiles) {
         $Date = $File.FieldValues.Modified.ToUniversalTime()
-        if ($File.FieldValues.FileRef -like "$($TargetFolder.ServerRelativeUrl)/*") {
+        if ($File.FieldValues.FileRef.StartsWith($TargetFolder.ServerRelativeUrl.TrimEnd('/') + '/', [StringComparison]::OrdinalIgnoreCase)) {
+            $Paths = Get-SharePointSyncPath -ServerRelativePath $File.FieldValues.FileRef -RemoteFolderPath $TargetFolder.ServerRelativeUrl -LocalFolderPath $TargetFolderPath -WebPath $Web.ServerRelativeUrl
             [PSCustomObject]@{
-                FullName      = $File.FieldValues.FileRef.Replace($TargetFolder.ServerRelativeURL, $TargetFolderPath).Replace("/", "\\")
+                FullName      = $Paths.FullName
                 PSIsContainer = $File.FileSystemObjectType -eq "Folder"
-                TargetItemURL = $File.FieldValues.FileRef.Replace($Web.ServerRelativeUrl, [string]::Empty)
+                TargetItemURL = $Paths.TargetItemURL
                 LastUpdated   = [datetime]::new($Date.Year, $Date.Month, $Date.Day, $Date.Hour, $Date.Minute, $Date.Second)
             }
             if (-not $File.FileSystemObjectType -eq "Folder") {
@@ -134,7 +142,7 @@ Function Sync-FilesFromSharePoint {
     Write-Color -Text "[i] ", "Total items (files) in source: ", "$TargetFilesCount" -Color Yellow, White, Green
     Write-Color -Text "[i] ", "Total items (folders) in source: ", "$TargetDirectoryCount" -Color Yellow, White, Green
 
-    $FilesLocalOutput = Get-FilesLocal -SourceFolderPath $TargetFolderPath -Include $Include -TargetFolderSiteRelativeURL $TargetFolderSiteRelativeURL
+    $FilesLocalOutput = Get-FilesLocal -SourceFolderPath $TargetFolderPath -Include $Include -TargetFolderSiteRelativeURL $TargetFolderSiteRelativeURL -ErrorAction Stop
     [Array] $Target = $FilesLocalOutput.Source
 
     Write-Color -Text "[i] ", "Total items (files) in target: ", "$($FilesLocalOutput.SourceFilesCount)" -Color Yellow, White, Green

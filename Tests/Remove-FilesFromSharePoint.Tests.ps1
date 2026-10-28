@@ -1,4 +1,5 @@
-BeforeAll {
+﻿BeforeAll {
+    . "$PSScriptRoot/../Private/Get-SharePointSyncPath.ps1"
     function Write-Color {}
     function Get-PnPListItem {}
     function Get-PnPFolder {}

@@ -1,77 +1,101 @@
 ﻿function Get-FilesLocal {
+    <#
+    .SYNOPSIS
+    Discovers local sync files and maps them beneath a SharePoint target.
+
+    .DESCRIPTION
+    File lists use their common directory unless SourceRootPath is supplied.
+    Discovery failures terminate so an incomplete list cannot drive removals.
+    #>
     [CmdletBinding()]
     param(
         [Array] $SourceFileList,
         [string] $SourceFolderPath,
+        [string] $SourceRootPath,
         [string] $Include,
         [string] $TargetFolderSiteRelativeURL
     )
-    if ($SourceFileList) {
-        $SourceDirectoryPath = $null
-        # Lets get all files from the source folder
-        [Array] $SourceItems = foreach ($Item in $SourceFileList) {
-            # We need to find the shortest path to the files
-            $TempSourceDirectoryPath = [io.path]::GetDirectoryName($Item)
-            if ($null -eq $SourceDirectoryPath) {
-                $SourceDirectoryPath = $TempSourceDirectoryPath
-            } elseif ($SourceDirectoryPath -ne $TempSourceDirectoryPath) {
-                if ($TempSourceDirectoryPath.Length -lt $SourceDirectoryPath.Length) {
-                    $SourceDirectoryPath = $TempSourceDirectoryPath
+    if ($PSBoundParameters.ContainsKey('SourceFileList')) {
+        if (-not $SourceFileList -or $SourceFileList.Count -eq 0) {
+            throw 'SourceFileList must contain at least one file.'
+        }
+        $SourceFiles = @(
+            foreach ($Item in $SourceFileList) {
+                $SourceItem = Get-Item -LiteralPath $Item -ErrorAction Stop
+                if ($SourceItem -isnot [IO.FileInfo]) {
+                    throw "SourceFileList accepts files only: '$Item'."
+                }
+                $SourceItem
+            }
+        )
+        $SourceFiles = @($SourceFiles | Sort-Object FullName -Unique)
+        if ($SourceRootPath) {
+            $SourceRoot = Get-Item -LiteralPath $SourceRootPath -ErrorAction Stop
+            if ($SourceRoot -isnot [IO.DirectoryInfo]) {
+                throw "SourceRootPath must identify a directory: '$SourceRootPath'."
+            }
+            $SourceDirectoryPath = $SourceRoot.FullName
+            if ($SourceDirectoryPath.Length -gt [IO.Path]::GetPathRoot($SourceDirectoryPath).Length) {
+                $SourceDirectoryPath = $SourceDirectoryPath.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar)
+            }
+            $Comparison = if ([IO.Path]::DirectorySeparatorChar -eq '\') {
+                [StringComparison]::OrdinalIgnoreCase
+            } else {
+                [StringComparison]::Ordinal
+            }
+            $RootPrefix = $SourceDirectoryPath.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+            foreach ($SourceFile in $SourceFiles) {
+                if (-not $SourceFile.FullName.StartsWith($RootPrefix, $Comparison)) {
+                    throw "Source file '$($SourceFile.FullName)' is outside SourceRootPath '$SourceDirectoryPath'."
                 }
             }
-            try {
-                Get-Item -Path $Item -ErrorAction Stop
-                Get-Item -Path $TempSourceDirectoryPath -ErrorAction Stop
-            } catch {
-                Write-Color -Text "[e] ", "Unable to get file '$Item' from the source file list. Make sure the path is correct and you have permissions to access it." -Color Yellow, Red
-                Write-Color -Text "[e] ", "Error: ", $_.Exception.Message -Color Yellow, Red
-                return
+        } else {
+            $SourceDirectoryPath = Get-CommonDirectoryPath -Path $SourceFiles.DirectoryName
+        }
+        $DirectoryCache = [ordered] @{}
+        foreach ($SourceFile in $SourceFiles) {
+            $Directory = $SourceFile.Directory
+            while ($null -ne $Directory -and $Directory.FullName -ne $SourceDirectoryPath) {
+                $DirectoryCache[$Directory.FullName] = $Directory
+                $Directory = $Directory.Parent
             }
         }
-        if ($SourceItems.Count -eq 0) {
-            Write-Color -Text "[e] ", "No files found in the source file list. Please make sure the list is not empty." -Color Yellow, Red
-            return
-        }
+        $SourceItems = @($DirectoryCache.Values) + @($SourceFiles)
     } else {
-        $SourceDirectoryPath = $SourceFolderPath
-        # Lets get all files from the source folder
-        $getChildItemSplat = @{
-            Path    = $SourceFolderPath
-            Recurse = $true
+        $SourceDirectory = Get-Item -LiteralPath $SourceFolderPath -ErrorAction Stop
+        if ($SourceDirectory -isnot [IO.DirectoryInfo]) {
+            throw "SourceFolderPath must identify a directory: '$SourceFolderPath'."
         }
-        try {
-            $SourceItems = Get-ChildItem @getChildItemSplat -ErrorAction Stop
-            if ($Include) {
-                $SourceItems = $SourceItems.Where({ $_.PSIsContainer -or $_.Name -like $Include })
-            }
-        } catch {
-            Write-Color -Text "[e] ", "Unable to get files from the source folder. Make sure the path is correct and you have permissions to access it." -Color Yellow, Red
-            Write-Color -Text "[e] ", "Error: ", $_.Exception.Message -Color Yellow, Red
-            return
+        $SourceDirectoryPath = $SourceDirectory.FullName
+        $SourceItems = @(Get-ChildItem -LiteralPath $SourceDirectoryPath -Recurse -ErrorAction Stop)
+        if ($Include) {
+            $SourceItems = @($SourceItems | Where-Object { $_.PSIsContainer -or $_.Name -like $Include })
         }
     }
     $SourceFilesCount = 0
     $SourceDirectoryCount = 0
-    [Array] $Source = foreach ($File in $SourceItems | Sort-Object -Unique -Property FullName) {
-        # Dates are not the same as in SharePoint, so we need to convert them to UTC
-        # And make sure we don't add miliseconds, as it will cause issues with comparison
-        $Date = $File.LastWriteTimeUtc
-        [PSCustomObject] @{
-            FullName      = $File.FullName
-            PSIsContainer = $File.PSIsContainer
-            TargetItemURL = $File.FullName.Replace($SourceDirectoryPath, $TargetFolderSiteRelativeURL).Replace("\", "/")
-            LastUpdated   = [datetime]::new($Date.Year, $Date.Month, $Date.Day, $Date.Hour, $Date.Minute, $Date.Second)
+    $RootPrefix = $SourceDirectoryPath.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+    $Source = @(
+        foreach ($File in $SourceItems | Sort-Object -Unique -Property FullName) {
+            $Date = $File.LastWriteTimeUtc
+            $IsDirectory = $File -is [IO.DirectoryInfo]
+            [pscustomobject] @{
+                FullName = $File.FullName
+                PSIsContainer = $IsDirectory
+                TargetItemURL = $TargetFolderSiteRelativeURL.TrimEnd('/') + '/' + $File.FullName.Substring($RootPrefix.Length).Replace('\', '/')
+                LastUpdated = [datetime]::new($Date.Year, $Date.Month, $Date.Day, $Date.Hour, $Date.Minute, $Date.Second)
+            }
+            if ($IsDirectory) {
+                $SourceDirectoryCount++
+            } else {
+                $SourceFilesCount++
+            }
         }
-        if (-not $File.PSIsContainer) {
-            $SourceFilesCount++
-        } else {
-            $SourceDirectoryCount++
-        }
-    }
+    )
     [ordered] @{
-        Source               = $Source
-        SourceFilesCount     = $SourceFilesCount
+        Source = $Source
+        SourceFilesCount = $SourceFilesCount
         SourceDirectoryCount = $SourceDirectoryCount
-        SourceDirectoryPath  = $SourceDirectoryPath
+        SourceDirectoryPath = $SourceDirectoryPath
     }
 }

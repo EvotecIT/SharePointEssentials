@@ -20,11 +20,12 @@
         # Dates are not the same as in SharePoint, so we need to convert them to UTC
         # And make sure we don't add miliseconds
         $Date = $File.FieldValues.Modified.ToUniversalTime()
-        if ($File.FieldValues.FileRef -like "$($TargetFolder.ServerRelativeUrl)/*") {
+        if ($File.FieldValues.FileRef.StartsWith($TargetFolder.ServerRelativeUrl.TrimEnd('/') + '/', [StringComparison]::OrdinalIgnoreCase)) {
+            $Paths = Get-SharePointSyncPath -ServerRelativePath $File.FieldValues.FileRef -RemoteFolderPath $TargetFolder.ServerRelativeUrl -LocalFolderPath $SourceFolderPath -WebPath $Web.ServerRelativeUrl
             [PSCustomObject] @{
-                FullName      = $File.FieldValues.FileRef.Replace($TargetFolder.ServerRelativeURL, $SourceFolderPath).Replace("/", "\")
+                FullName      = $Paths.FullName
                 PSIsContainer = $File.FileSystemObjectType -eq "Folder"
-                TargetItemURL = $File.FieldValues.FileRef.Replace($Web.ServerRelativeUrl, [string]::Empty)
+                TargetItemURL = $Paths.TargetItemURL
                 LastUpdated   = [datetime]::new($Date.Year, $Date.Month, $Date.Day, $Date.Hour, $Date.Minute, $Date.Second)
             }
             if (-not $File.FileSystemObjectType -eq "Folder") {

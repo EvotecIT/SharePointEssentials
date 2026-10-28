@@ -10,6 +10,7 @@
     - Adding content to local folder will add it to SharePoint Online
     - Updating content on local folder will update it on SharePoint Online
     - Deleting content on SharePoint Online will trigger reupload from local folder
+    Source discovery errors and empty source inventories stop synchronization before changes.
 
     .PARAMETER SiteURL
     Site URL where the library is located
@@ -20,6 +21,9 @@
     .PARAMETER SourceFileList
     List of files to synchronize. If this is used, then SourceFolderPath is ignored
     This is useful when you want to synchronize specific files only
+
+    .PARAMETER SourceRootPath
+    Optional local root used to preserve relative folders when SourceFileList contains files from only one subfolder.
 
     .PARAMETER TargetLibraryName
     Name of the library to synchronize to without site url
@@ -65,6 +69,14 @@
 
     Sync-FilesToSharePoint @syncFiles -WhatIf
 
+    .EXAMPLE
+    Sync-FilesToSharePoint -SiteURL 'https://contoso.sharepoint.com/sites/reports' -SourceFileList 'C:\Reports\Custom\Report.html' -SourceRootPath 'C:\Reports' -TargetLibraryName 'Shared Documents' -SkipRemoval -WhatIf
+
+    Preserves Custom/Report.html beneath the target library while selecting one file.
+
+    .OUTPUTS
+    Diagnostic messages. No synchronization result object is returned.
+
     .NOTES
     General notes
     #>
@@ -72,7 +84,8 @@
     param (
         [Parameter(Mandatory)][string] $SiteURL,
         [Parameter(Mandatory, ParameterSetName = 'SourceFolder')][string] $SourceFolderPath,
-        [Parameter(Mandatory, ParameterSetName = 'SourceFileList')][Array] $SourceFileList,
+        [Parameter(Mandatory, ParameterSetName = 'SourceFileList')][ValidateNotNullOrEmpty()][Array] $SourceFileList,
+        [Parameter(ParameterSetName = 'SourceFileList')][string] $SourceRootPath,
         [Parameter(Mandatory)][string] $TargetLibraryName,
         [string] $LogPath,
         [int] $LogMaximum,
@@ -88,6 +101,8 @@
     Write-Color -Text "[i] ", "Starting synchronization of files from ", $SourceFolderPath, " to ", $SiteUrl -Color Yellow, White, Yellow, White, Green
     Write-Color -Text "[i] ", "Target library: ", $TargetLibraryName -Color Yellow, White, Green
 
+    $ListIdentity = Get-SharePointListIdentity -LibraryPath $TargetLibraryName
+
     # Connect to SharePoint Online
     try {
         $Web = Get-PnPWeb -ErrorAction Stop
@@ -97,7 +112,7 @@
         return
     }
     try {
-        $Library = Get-PnPList -Identity $TargetLibraryName -Includes RootFolder -ErrorAction Stop
+        $Library = Get-PnPList -Identity $ListIdentity -Includes RootFolder -ErrorAction Stop
     } catch {
         Write-Color -Text "[e] ", "Unable to get list of libraries on SharePoint Online. Make sure that you have permissions to the site." -Color Yellow, Red
         Write-Color -Text "[e] ", "Error: ", $_.Exception.Message -Color Yellow, Red
@@ -116,7 +131,21 @@
         $TargetFolderSiteRelativeURL = $TargetFolder.ServerRelativeURL.Replace($Web.ServerRelativeUrl, [string]::Empty)
     }
 
-    $FilesLocalOutput = Get-FilesLocal -SourceFileList $SourceFileList -SourceFolderPath $SourceFolderPath -Include $Include -TargetFolderSiteRelativeURL $TargetFolderSiteRelativeURL
+    $LocalFilesParameters = @{
+        Include = $Include
+        TargetFolderSiteRelativeURL = $TargetFolderSiteRelativeURL
+        ErrorAction = 'Stop'
+    }
+    if ($PSCmdlet.ParameterSetName -eq 'SourceFileList') {
+        $LocalFilesParameters.SourceFileList = $SourceFileList
+        $LocalFilesParameters.SourceRootPath = $SourceRootPath
+    } else {
+        $LocalFilesParameters.SourceFolderPath = $SourceFolderPath
+    }
+    $FilesLocalOutput = Get-FilesLocal @LocalFilesParameters
+    if (-not $FilesLocalOutput -or -not $FilesLocalOutput.Source) {
+        throw 'No source items were found. Synchronization stopped without changing SharePoint.'
+    }
     [Array] $Source = $FilesLocalOutput.Source
     [string] $SourceDirectoryPath = $FilesLocalOutput.SourceDirectoryPath
 
@@ -130,7 +159,7 @@
     $exportFilesToSharePointSplat = @{
         Source            = $Source
         SourceFolderPath  = $SourceDirectoryPath
-        TargetLibraryName = $TargetLibraryName
+        TargetLibraryName = $ListIdentity
         TargetFolder      = $TargetFolder
         Web               = $Web
         WhatIf            = $WhatIfPreference
@@ -145,7 +174,7 @@
             Source             = $Source
             SiteURL            = $SiteURL
             SourceFolderPath   = $SourceDirectoryPath
-            TargetLibraryName  = $TargetLibraryName
+            TargetLibraryName  = $ListIdentity
             TargetFolder       = $TargetFolder
             Web                = $Web
             WhatIf             = $WhatIfPreference
